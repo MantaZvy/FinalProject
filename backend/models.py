@@ -9,7 +9,6 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 class Base(DeclarativeBase):
     pass
 
-
 class JobDescriptions(Base):
     __tablename__ = 'job_descriptions'
     __table_args__ = (
