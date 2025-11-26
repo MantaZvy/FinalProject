@@ -8,6 +8,7 @@ import uuid
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from db import get_db
+from sqlalchemy import text
 from models import JobDescriptions, JobSeeker, Applications, Documents, CalendarEvents, EmailEvents, MatchScores, NlpLogs
 
 app = FastAPI()
@@ -250,6 +251,15 @@ async def add_nlp_log(log: NlpLogsSchema, db: AsyncSession = Depends(get_db)):
 @app.get("/")
 def read_root():
     return {"message": "Backend is running!"}
+
+@app.get("/test-db")
+async def test_db_connection(db: AsyncSession = Depends(get_db)):
+    try:
+        result = await db.execute(text("SELECT 1"))
+        value = result.scalar()
+        return {"status": "connected", "result": value}
+    except Exception as e:
+        return {"status": "error", "detail": str(e)}
 
 
 if __name__ == "__main__":
