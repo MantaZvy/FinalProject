@@ -1,5 +1,5 @@
 from typing import Optional
-import datetime
+from datetime import date, datetime
 import uuid
 
 from sqlalchemy import ARRAY, Date, DateTime, Double, ForeignKeyConstraint, PrimaryKeyConstraint, String, Text, Uuid, text
@@ -22,8 +22,7 @@ class JobDescriptions(Base):
     skills_required: Mapped[Optional[list[str]]] = mapped_column(ARRAY(Text()))
     keywords: Mapped[Optional[list[str]]] = mapped_column(ARRAY(Text()))
     source: Mapped[Optional[str]] = mapped_column(String(50))
-    created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
-
+    created_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), server_default=text("now()"))
     applications: Mapped[list['Applications']] = relationship('Applications', back_populates='job')
     match_scores: Mapped[list['MatchScores']] = relationship('MatchScores', back_populates='job')
 
@@ -41,7 +40,7 @@ class JobSeeker(Base):
     experience: Mapped[Optional[dict]] = mapped_column(JSONB)
     certifications: Mapped[Optional[list[str]]] = mapped_column(ARRAY(Text()))
     keywords: Mapped[Optional[list[str]]] = mapped_column(ARRAY(Text()))
-    created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    created_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), server_default=text("now()"))
 
     applications: Mapped[list['Applications']] = relationship('Applications', back_populates='user')
     documents: Mapped[list['Documents']] = relationship('Documents', back_populates='user')
@@ -60,7 +59,7 @@ class NlpLogs(Base):
     perplexity: Mapped[Optional[float]] = mapped_column(Double(53))
     accuracy: Mapped[Optional[float]] = mapped_column(Double(53))
     notes: Mapped[Optional[str]] = mapped_column(Text)
-    created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    created_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), server_default=text("now()"))
 
 
 class Applications(Base):
@@ -80,9 +79,9 @@ class Applications(Base):
     status: Mapped[Optional[str]] = mapped_column(String(50))
     salary_range: Mapped[Optional[str]] = mapped_column(Text)
     notes: Mapped[Optional[str]] = mapped_column(Text)
-    applied_date: Mapped[Optional[datetime.date]] = mapped_column(Date)
-    created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
-    updated_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    applied_date: Mapped[Optional[date]] = mapped_column(Date)
+    created_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), server_default=text("now()"))
+    updated_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), server_default=text("now()"))
 
     job: Mapped[Optional['JobDescriptions']] = relationship('JobDescriptions', back_populates='applications')
     user: Mapped[Optional['JobSeeker']] = relationship('JobSeeker', back_populates='applications')
@@ -103,7 +102,7 @@ class Documents(Base):
     doc_type: Mapped[Optional[str]] = mapped_column(String(50))
     content: Mapped[Optional[str]] = mapped_column(Text)
     file_path: Mapped[Optional[str]] = mapped_column(Text)
-    created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    created_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), server_default=text("now()"))
 
     user: Mapped[Optional['JobSeeker']] = relationship('JobSeeker', back_populates='documents')
 
@@ -118,8 +117,8 @@ class CalendarEvents(Base):
     event_id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, server_default=text('uuid_generate_v4()'))
     application_id: Mapped[Optional[uuid.UUID]] = mapped_column(Uuid)
     event_title: Mapped[Optional[str]] = mapped_column(Text)
-    event_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
-    created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    event_date: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), server_default=text("now()"))
     google_event_id: Mapped[Optional[str]] = mapped_column(Text)
 
     application: Mapped[Optional['Applications']] = relationship('Applications', back_populates='calendar_events')
@@ -138,8 +137,8 @@ class EmailEvents(Base):
     subject: Mapped[Optional[str]] = mapped_column(Text)
     snippet: Mapped[Optional[str]] = mapped_column(Text)
     detected_status: Mapped[Optional[str]] = mapped_column(String(50))
-    received_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
-    processed_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    received_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
+    processed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), server_default=text("now()"))
 
     application: Mapped[Optional['Applications']] = relationship('Applications', back_populates='email_events')
 
@@ -160,8 +159,9 @@ class MatchScores(Base):
     similarity_score: Mapped[Optional[float]] = mapped_column(Double(53))
     regression_prediction: Mapped[Optional[float]] = mapped_column(Double(53))
     model_used: Mapped[Optional[str]] = mapped_column(String(100))
-    created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    created_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), server_default=text("now()"))
 
     application: Mapped[Optional['Applications']] = relationship('Applications', back_populates='match_scores')
     job: Mapped[Optional['JobDescriptions']] = relationship('JobDescriptions', back_populates='match_scores')
     user: Mapped[Optional['JobSeeker']] = relationship('JobSeeker', back_populates='match_scores')
+

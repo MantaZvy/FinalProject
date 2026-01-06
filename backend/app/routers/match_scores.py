@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from schemas.match_score import MatchScoresSchema
-from models import MatchScores
-from db import get_db
+from app.schemas.match_score import MatchScoresSchema
+from app.models import MatchScores
+from app.db import get_db
 
 router = APIRouter()
 

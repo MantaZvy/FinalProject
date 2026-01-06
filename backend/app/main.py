@@ -2,8 +2,8 @@ from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
-from db import get_db
-from routers import jobs, applications, documents, match_scores, nlp_logs, calendar_events, email_events, job_seekers
+from app.db import get_db
+from app.routers import jobs, applications, documents, match_scores, nlp_logs, calendar_events, email_events, job_seekers
 
 app = FastAPI()
 

@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from schemas.calendar_event import CalendarEventsSchema
-from models import CalendarEvents
-from db import get_db
+from app.schemas.calendar_event import CalendarEventsSchema
+from app.models import CalendarEvents
+from app.db import get_db
 
 router = APIRouter()
 

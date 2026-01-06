@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from schemas.nlp_log import NlpLogsSchema
-from models import NlpLogs
-from db import get_db
+from app.schemas.nlp_log import NlpLogsSchema
+from app.models import NlpLogs
+from app.db import get_db
 
 router = APIRouter()
 

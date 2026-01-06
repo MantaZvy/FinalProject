@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from schemas.job_descriptions import JobDescriptionsSchema
-from models import JobDescriptions
-from db import get_db
+from app.schemas.job_descriptions import JobDescriptionsSchema
+from app.models import JobDescriptions
+from app.db import get_db
 
 router = APIRouter()
 
