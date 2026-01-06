@@ -131,9 +131,7 @@ class MatchScoresSchema(BaseModel):
     class Config:
         orm_mode = True
 
-# ----------------------
 # Endpoints
-# ----------------------
 
 # Jobs
 @app.get("/jobs", response_model=List[JobDescriptionsSchema])
