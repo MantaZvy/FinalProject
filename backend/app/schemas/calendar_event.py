@@ -1,18 +1,20 @@
 from pydantic import BaseModel
 from typing import Optional
-import uuid, datetime
+from datetime import datetime
+import uuid
+
 
 class CalendarEventCreate(BaseModel):
     application_id: uuid.UUID
     event_title: str
     event_date: datetime
-    google_event_id: Optional[str]
+    google_event_id: Optional[str] = None
 
 
 class CalendarEventUpdate(BaseModel):
-    event_title: Optional[str]
-    event_date: Optional[datetime.datetime]
-    google_event_id: Optional[str]
+    event_title: Optional[str] = None
+    event_date: Optional[datetime] = None
+    google_event_id: Optional[str] = None
 
 
 class CalendarEventOut(BaseModel):
