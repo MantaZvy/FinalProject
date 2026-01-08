@@ -1,12 +1,32 @@
 from pydantic import BaseModel
 from typing import Optional
 import uuid, datetime
+class MatchScoreCreate(BaseModel):
+    user_id: uuid.UUID
+    application_id: uuid.UUID
+    job_id: uuid.UUID
+    similarity_score: Optional[float]
+    regression_prediction: Optional[float]
+    model_used: Optional[str]
 
-class MatchScoresSchema(BaseModel):
-    score_id: Optional[uuid.UUID]
-    user_id: Optional[uuid.UUID]
-    application_id: Optional[uuid.UUID]
-    job_id: Optional[uuid.UUID]
+    class Config:
+        from_attributes = True
+
+# Update Schema
+class MatchScoreUpdate(BaseModel):
+    similarity_score: Optional[float]
+    regression_prediction: Optional[float]
+    model_used: Optional[str]
+
+    class Config:
+        from_attributes = True
+
+# Output Schema
+class MatchScoreOut(BaseModel):
+    score_id: uuid.UUID
+    user_id: uuid.UUID
+    application_id: uuid.UUID
+    job_id: uuid.UUID
     similarity_score: Optional[float]
     regression_prediction: Optional[float]
     model_used: Optional[str]
