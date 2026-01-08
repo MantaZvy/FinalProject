@@ -3,66 +3,42 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db import get_db
 from app.models import Documents, JobSeeker, NlpLogs
 from app.schemas.nlp_processing import ResumeParseResponse
+from app.nlp.resume_parser import extract_resume_text, parse_resume
 
 import uuid
-import pdfplumber
-from io import BytesIO
-
-
 
 router = APIRouter(prefix="/nlp", tags=["NLP"])
 
-#text extraction from format logic (ONLY TEXT AND PDF SUPPORTED)
-def extract_text(file_bytes: bytes, content_type: str) -> str:
-
-    if content_type == "text/plain":
-        return file_bytes.decode("utf-8")
-
-    if content_type == "application/pdf":
-        text_chunks = []
-        with pdfplumber.open(BytesIO(file_bytes)) as pdf:
-            for page in pdf.pages:
-                text_chunks.append(page.extract_text() or "")
-        return "\n".join(text_chunks)
-    
-    raise HTTPException(
-        status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-        detail="Unsupported file type"
-    )
-
-
-#enpoint  for parsing 
 @router.post(
     "/resume/parse",
     response_model=ResumeParseResponse,
     status_code=status.HTTP_201_CREATED
 )
-async def parse_resume(
+async def parse_resume_endpoint(
     user_id: uuid.UUID = Form(...),
     file: UploadFile = File(...),
     db: AsyncSession = Depends(get_db)
 ):
-    # Validate user
+    #validate user
     user = await db.get(JobSeeker, user_id)
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
-    # Read file contents (async-safe)
+    #read file contents asynchronously
     file_bytes = await file.read()
-
     if not file_bytes:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Uploaded file is empty"
         )
 
-    # Extract text
-    extracted_text = extract_text(
-        file_bytes=file_bytes,
-        content_type=file.content_type
-    )
+    #extract raw text from uploaded file
+    extracted_text = extract_resume_text(file_bytes=file_bytes, content_type=file.content_type)
 
-    # Persist document
+    #parse structured resume data
+    parsed = parse_resume(extracted_text)
+
+    #persist raw document
     document = Documents(
         user_id=user_id,
         doc_type="resume",
@@ -71,20 +47,35 @@ async def parse_resume(
     )
     db.add(document)
 
-    # Log NLP execution
+    #update JobSeeker with parsed fields
+    if parsed.get("skills"):
+        user.skills = parsed["skills"]
+    if parsed.get("keywords"):
+        user.keywords = parsed["keywords"]
+    if parsed.get("profile_summary"):
+        user.profile_summary = parsed["profile_summary"]
+    if parsed.get("education"):
+        user.education = {"education": parsed["education"]}
+    if parsed.get("experience"):
+        user.experience = {"experience": parsed["experience"]}
+
+    #log NLP execution
     log = NlpLogs(
         model_name="resume_text_extraction_v1",
         notes=f"Parsed file: {file.filename}"
     )
     db.add(log)
 
+    #commit transaction
     await db.commit()
     await db.refresh(document)
     await db.refresh(log)
 
+    #return structured response
     return ResumeParseResponse(
         document_id=document.document_id,
         user_id=user_id,
         extracted_text=extracted_text,
-        model_name=log.model_name
+        model_name=log.model_name,
+        parsed_resume=parsed
     )
