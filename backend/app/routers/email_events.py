@@ -6,7 +6,7 @@ from app.models import EmailEvents, Applications
 from app.db import get_db
 import uuid
 
-router = APIRouter(prefix="/email-events", tags=["Email Events"])
+router = APIRouter(prefix="/email_events", tags=["Email Events"])
 
 # Email Event
 #Create

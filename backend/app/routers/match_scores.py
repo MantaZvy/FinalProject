@@ -6,7 +6,7 @@ from app.models import MatchScores, Applications, JobDescriptions, JobSeeker
 from app.db import get_db
 import uuid
 
-router = APIRouter(prefix="/match-scores", tags=["Match Scores"])
+router = APIRouter(prefix="/match_scores", tags=["Match Scores"])
 
 # Match Scores
 #Create

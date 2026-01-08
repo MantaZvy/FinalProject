@@ -5,7 +5,7 @@ from app.schemas.nlp_log import NlpLogCreate, NlpLogOut, NlpLogUpdate
 from app.models import NlpLogs
 from app.db import get_db
 
-router = APIRouter()
+router = APIRouter(prefix="/nlp_logs", tags=["NLP Logs"])
 
 # NLP Logs
 #Create
