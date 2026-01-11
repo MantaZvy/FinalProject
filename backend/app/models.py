@@ -2,8 +2,8 @@ from typing import Optional
 from datetime import date, datetime
 import uuid
 
-from sqlalchemy import ARRAY, Date, DateTime, Double, ForeignKeyConstraint, PrimaryKeyConstraint, String, Text, Uuid, text
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import ARRAY, Date, DateTime, Double, ForeignKeyConstraint, PrimaryKeyConstraint, String, Text, Uuid, text, Column, ForeignKey
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 class Base(DeclarativeBase):
@@ -165,3 +165,32 @@ class MatchScores(Base):
     job: Mapped[Optional['JobDescriptions']] = relationship('JobDescriptions', back_populates='match_scores')
     user: Mapped[Optional['JobSeeker']] = relationship('JobSeeker', back_populates='match_scores')
 
+class ResumeProfile(Base):
+    __tablename__ = "resume_profiles"
+
+    profile_id = Column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+
+    user_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("job_seeker.user_id", ondelete="CASCADE"),
+        nullable=False,
+        unique=True,
+    )
+
+    parsed_data = Column(JSONB, nullable=False)
+
+    model_version = Column(
+        nullable=False,
+        default="resume_parser_v1",
+    )
+
+    created_at = Column(
+        DateTime,
+        default=datetime.utcnow,
+    )
+
+    user = relationship("JobSeeker", backref="resume_profile")

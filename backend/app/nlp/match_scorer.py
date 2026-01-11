@@ -1,4 +1,4 @@
-from typing import Dict, List, Set
+from typing import Dict, List, Set, Any
 
 #normalise a list of strings by converting to lowercase and stripping whitespace
 def normalize(values: List[str] | None) -> Set[str]:
@@ -7,9 +7,9 @@ def normalize(values: List[str] | None) -> Set[str]:
     return {v.lower().strip() for v in values}
 
 def compute_match_score(
-    resume: Dict,
-    job: Dict
-) -> Dict:
+    resume: Dict[str, Any],
+    job: Dict[str, Any]
+) -> Dict[str, Any]:
     
     resume_skills = normalize(resume.get("skills"))
     job_skills = normalize(job.get("skills"))
@@ -46,7 +46,8 @@ def compute_match_score(
     )
 
     return {
-        "score": total_score,
+        "similarity_score": total_score,
+        "model_used": "skill_keyword_overlap_v1",
         "matched_skills": matched_skills,
         "matched_keywords": matched_keywords,
         "explanation": explanation

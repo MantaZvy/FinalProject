@@ -5,9 +5,9 @@ class MatchScoreCreate(BaseModel):
     user_id: uuid.UUID
     application_id: uuid.UUID
     job_id: uuid.UUID
-    similarity_score: Optional[float]
-    regression_prediction: Optional[float]
-    model_used: Optional[str]
+    similarity_score: Optional[float] = None
+    regression_prediction: Optional[float] = None
+    model_used: Optional[str] = "skill_overlap_v1"
 
     class Config:
         from_attributes = True
