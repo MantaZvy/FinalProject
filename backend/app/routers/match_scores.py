@@ -132,7 +132,7 @@ async def compute_match_score_for_application(
         user_id=application.user_id,
         application_id=application.application_id,
         job_id=job.job_id,
-        similarity_score=result["score"],
+        similarity_score=result["similarity_score"],
         model_used="keyword_skill_match_v1",
     )
 
@@ -179,7 +179,7 @@ async def compute_and_store_match_score(
         user_id=payload.user_id,
         application_id=payload.application_id,
         job_id=payload.job_id,
-        similarity_score=result["score"],
+        similarity_score=result["similarity_score"],
         model_used="skill_keyword_overlap_v1",
     )
 
