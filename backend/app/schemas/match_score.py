@@ -34,3 +34,7 @@ class MatchScoreOut(BaseModel):
 
     class Config:
         from_attributes = True
+class MatchScoreCompute(BaseModel):
+    user_id: uuid.UUID
+    application_id: uuid.UUID
+    job_id: uuid.UUID
