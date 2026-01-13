@@ -76,3 +76,19 @@ def keyword_overlap_matcher(resume: dict, job: dict) -> MatchResult:
         "model_name": "keyword_overlap",
         "model_version": "v1",
     }
+    
+def weighted_skill_matcher(resume: dict, job: dict) -> MatchResult:
+    resume_skills = set(resume.get("skills", []))
+    job_skills = set(job.get("skills", []))
+
+    matched_skills = list(resume_skills & job_skills)
+
+    skill_score = len(matched_skills) / len(job_skills) if job_skills else 0.0
+
+    return {
+        "similarity_score": round(skill_score, 4),
+        "matched_skills": matched_skills,
+        "matched_keywords": [],
+        "model_name": "weighted_skill",
+        "model_version": "v1",
+    }

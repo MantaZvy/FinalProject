@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from app.schemas.match_score import MatchScoreCreate, MatchScoreUpdate, MatchScoreOut, MatchScoreCompute
-from app.nlp.match_scorer import compute_match_score
+from app.schemas.match_score import MatchScoreCreate, MatchScoreUpdate, MatchScoreOut
+from app.nlp.match_scorer import keyword_overlap_matcher, weighted_skill_matcher
+from app.nlp.model_selector import select_best_model
 from app.models import MatchScores, Applications, JobDescriptions, JobSeeker, Documents
 from app.db import get_db
 import uuid
@@ -87,23 +88,19 @@ async def compute_match_score_for_application(
     application_id: uuid.UUID,
     db: AsyncSession = Depends(get_db)
 ):
-    application = await db.scalar(#fetch application
-        select(Applications).where(
-            Applications.application_id == application_id
-        )
+    application = await db.scalar(
+        select(Applications).where(Applications.application_id == application_id)
     )
     if not application:
         raise HTTPException(status_code=404, detail="Application not found")
 
-    job = await db.scalar(#fetch job description
-        select(JobDescriptions).where(
-            JobDescriptions.job_id == application.job_id
-        )
+    job = await db.scalar(
+        select(JobDescriptions).where(JobDescriptions.job_id == application.job_id)
     )
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
 
-    resume = await db.scalar(#latest resume document 
+    resume = await db.scalar(
         select(Documents)
         .where(
             Documents.user_id == application.user_id,
@@ -112,28 +109,27 @@ async def compute_match_score_for_application(
         .order_by(Documents.created_at.desc())
     )
     if not resume:
-        raise HTTPException(
-            status_code=404,
-            detail="Resume not found for user",
-        )
+        raise HTTPException(status_code=404, detail="Resume not found")
 
-    resume_data = resume.content if isinstance(resume.content, dict) else {}#build nlp input
+    resume_data = resume.content if isinstance(resume.content, dict) else {}
     job_data = {
-        "skills": job.skills or [],
+        "skills": job.skills_required or [],
         "keywords": job.keywords or [],
     }
 
-    result = compute_match_score(#compute match score
-        resume=resume_data,
-        job=job_data,
-    )
+    results = [
+        keyword_overlap_matcher(resume_data, job_data),
+        weighted_skill_matcher(resume_data, job_data),
+    ]
+
+    best = select_best_model(results)
 
     score = MatchScores(
         user_id=application.user_id,
         application_id=application.application_id,
         job_id=job.job_id,
-        similarity_score=result["similarity_score"],
-        model_used="keyword_skill_match_v1",
+        similarity_score=best["similarity_score"],
+        model_used=f'{best["model_name"]}:{best["model_version"]}',
     )
 
     db.add(score)
@@ -141,50 +137,3 @@ async def compute_match_score_for_application(
     await db.refresh(score)
 
     return score
-#Compute match score with parsed job and resume data
-@router.post(
-    "/compute",
-    response_model=MatchScoreOut,
-    status_code=status.HTTP_201_CREATED
-)
-async def compute_and_store_match_score(
-    payload: MatchScoreCompute,
-    db: AsyncSession = Depends(get_db)
-):
-    user = await db.get(JobSeeker, payload.user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    application = await db.get(Applications, payload.application_id)
-    if not application:
-        raise HTTPException(status_code=404, detail="Application not found")
-
-    job = await db.get(JobDescriptions, payload.job_id)
-    if not job:
-        raise HTTPException(status_code=404, detail="Job not found")
-
-    resume_data = {
-        "skills": user.skills or [],
-        "keywords": user.keywords or [],
-    }
-
-    job_data = {
-        "skills": job.skills_required or [],
-        "keywords": job.keywords or [],
-    }
-
-    result = compute_match_score(resume_data, job_data)
-
-    match_score = MatchScores(
-        user_id=payload.user_id,
-        application_id=payload.application_id,
-        job_id=payload.job_id,
-        similarity_score=result["similarity_score"],
-        model_used="skill_keyword_overlap_v1",
-    )
-
-    db.add(match_score)
-    await db.commit()
-    await db.refresh(match_score)
-
-    return match_score
