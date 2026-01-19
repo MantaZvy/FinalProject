@@ -136,9 +136,9 @@ async def compute_match_score_for_application(
     }
 
     results = [
-        keyword_overlap_matcher(resume_data, job_data),
-        weighted_skill_matcher(resume_data, job_data),
-    ]
+    keyword_overlap_matcher(resume_data, job_data),
+    weighted_skill_matcher(resume_data, job_data),
+]
 
     best = select_best_model(results)
 
@@ -150,8 +150,6 @@ async def compute_match_score_for_application(
         model_used=f'{best["model_name"]}:{best["model_version"]}',
     )
 
-    print("RESUME DATA:", resume_data)
-    print("JOB DATA:", job_data)
     db.add(score)
     await db.commit()
     await db.refresh(score)
