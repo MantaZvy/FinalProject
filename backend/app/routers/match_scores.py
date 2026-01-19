@@ -7,6 +7,7 @@ from app.nlp.model_selector import select_best_model
 from app.models import MatchScores, Applications, JobDescriptions, JobSeeker, Documents
 from app.db import get_db
 import uuid
+import re
 
 router = APIRouter(prefix="/match_scores", tags=["Match Scores"])
 
@@ -78,6 +79,23 @@ async def delete_match_score(score_id: uuid.UUID, db: AsyncSession = Depends(get
     await db.delete(score)
     await db.commit()
     
+#ensures resume data is always structured for NLP models
+def normalize_resume(content):
+    if isinstance(content, dict):
+        return {
+            "skills": content.get("skills", []),
+            "keywords": content.get("keywords", []),
+        }
+
+    if isinstance(content, str):
+        tokens = re.findall(r"\b[a-zA-Z]+\b", content.lower())
+        return {
+            "skills": tokens,
+            "keywords": tokens,
+        }
+
+    return {"skills": [], "keywords": []}
+
 #Computed Match Score NLP/ML Endpoint and return MatchScoreOut, create POST
 @router.post(
     "/compute/{application_id}",
@@ -110,8 +128,8 @@ async def compute_match_score_for_application(
     )
     if not resume:
         raise HTTPException(status_code=404, detail="Resume not found")
-
-    resume_data = resume.content if isinstance(resume.content, dict) else {}
+    #normalise resume data (similarity score)
+    resume_data = normalize_resume(resume.content)
     job_data = {
         "skills": job.skills_required or [],
         "keywords": job.keywords or [],
@@ -132,6 +150,8 @@ async def compute_match_score_for_application(
         model_used=f'{best["model_name"]}:{best["model_version"]}',
     )
 
+    print("RESUME DATA:", resume_data)
+    print("JOB DATA:", job_data)
     db.add(score)
     await db.commit()
     await db.refresh(score)
