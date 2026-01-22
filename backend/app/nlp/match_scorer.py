@@ -1,94 +1,55 @@
-from typing import Dict, List, Set, Any
+from typing import Dict, Any
 from app.nlp.types import MatchResult
-
-#normalise a list of strings by converting to lowercase and stripping whitespace
-def normalize(values: List[str] | None) -> Set[str]:
-    if not values:
-        return set()
-    return {v.lower().strip() for v in values}
-
-def compute_match_score(
-    resume: Dict[str, Any],
-    job: Dict[str, Any]
-) -> Dict[str, Any]:
+from app.nlp.normalise import normalize_skills
     
-    resume_skills = normalize(resume.get("skills"))
-    job_skills = normalize(job.get("skills"))
+def keyword_overlap_matcher(resume: Dict[str, Any], job: Dict[str, Any]) -> MatchResult:
+    resume_skills = normalize_skills(resume.get("skills", []))
+    job_skills = normalize_skills(job.get("skills", []))
 
-    resume_keywords = normalize(resume.get("keywords"))
-    job_keywords = normalize(job.get("keywords"))
+    if not job_skills:
+        return {
+            "model_name": "keyword_overlap",
+            "model_version": "v1",
+            "similarity_score": 0.0,
+            "matched_skills": [],
+            "matched_keywords": [],
+        }
 
-    matched_skills = sorted(resume_skills & job_skills)
-    matched_keywords = sorted(resume_keywords & job_keywords)
-
-    #weights
-    SKILL_WEIGHT = 0.7
-    KEYWORD_WEIGHT = 0.3
-
-    skill_score = (
-        len(matched_skills) / max(len(job_skills), 1)
-    ) * 100
-
-    keyword_score = (
-        len(matched_keywords) / max(len(job_keywords), 1)
-    ) * 100
-
-    total_score = round(
-        (skill_score * SKILL_WEIGHT) +
-        (keyword_score * KEYWORD_WEIGHT),
-        2
-    )
-
-    explanation = (
-        f"Matched skills: {', '.join(matched_skills)}. "
-        f"Matched keywords: {', '.join(matched_keywords)}."
-        if matched_skills or matched_keywords
-        else "No significant matches found."
-    )
+    matched = resume_skills & job_skills
+    score = len(matched) / len(job_skills)
 
     return {
-        "similarity_score": total_score,
-        "model_used": "skill_keyword_overlap_v1",
-        "matched_skills": matched_skills,
-        "matched_keywords": matched_keywords,
-        "explanation": explanation
-    }
-    
-def keyword_overlap_matcher(resume: dict, job: dict) -> MatchResult:
-    resume_skills = set(resume.get("skills", []))
-    job_skills = set(job.get("skills", []))
-
-    resume_keywords = set(resume.get("keywords", []))
-    job_keywords = set(job.get("keywords", []))
-
-    matched_skills = list(resume_skills & job_skills)
-    matched_keywords = list(resume_keywords & job_keywords)
-
-    total_possible = len(job_skills | job_keywords)
-    total_matched = len(matched_skills) + len(matched_keywords)
-
-    score = total_matched / total_possible if total_possible else 0.0
-
-    return {
-        "similarity_score": round(score, 4),
-        "matched_skills": matched_skills,
-        "matched_keywords": matched_keywords,
         "model_name": "keyword_overlap",
         "model_version": "v1",
+        "similarity_score": round(score, 3),
+        "matched_skills": sorted(matched),
+        "matched_keywords": [],
     }
-    
-def weighted_skill_matcher(resume: dict, job: dict) -> MatchResult:
-    resume_skills = set(resume.get("skills", []))
-    job_skills = set(job.get("skills", []))
 
-    matched_skills = list(resume_skills & job_skills)
 
-    skill_score = len(matched_skills) / len(job_skills) if job_skills else 0.0
+def weighted_skill_matcher(resume: Dict[str, Any], job: Dict[str, Any]) -> MatchResult:
+    resume_skills = normalize_skills(resume.get("skills", []))
+    job_skills = normalize_skills(job.get("skills", []))
+
+    if not job_skills:
+        return {
+            "model_name": "weighted_skill",
+            "model_version": "v1",
+            "similarity_score": 0.0,
+            "matched_skills": [],
+            "matched_keywords": [],
+        }
+
+    matched = resume_skills & job_skills
+    base_score = len(matched) / len(job_skills)
+
+    weighted_score = min(base_score * 1.25, 1.0)
 
     return {
-        "similarity_score": round(skill_score, 4),
-        "matched_skills": matched_skills,
-        "matched_keywords": [],
         "model_name": "weighted_skill",
         "model_version": "v1",
+        "similarity_score": round(weighted_score, 3),
+        "matched_skills": sorted(matched),
+        "matched_keywords": [],
     }
+    
