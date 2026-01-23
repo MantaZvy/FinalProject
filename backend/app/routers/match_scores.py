@@ -11,8 +11,8 @@ import re
 
 router = APIRouter(prefix="/match_scores", tags=["Match Scores"])
 
-# Match Scores
-#Create
+# Match Score endpoints
+#create
 @router.post("/", response_model=MatchScoreOut, status_code=status.HTTP_201_CREATED)
 async def create_match_score(
     payload: MatchScoreCreate,
@@ -143,12 +143,21 @@ async def compute_match_score_for_application(
     best = select_best_model(results)
 
     score = MatchScores(
-        user_id=application.user_id,
-        application_id=application.application_id,
-        job_id=job.job_id,
-        similarity_score=best["similarity_score"],
-        model_used=f'{best["model_name"]}:{best["model_version"]}',
-    )
+    user_id=application.user_id,
+    application_id=application.application_id,
+    job_id=job.job_id,
+    similarity_score=best["similarity_score"],
+    model_used=f'{best["model_name"]}:{best["model_version"]}',
+    matched_skills=best.get("matched_skills", []),
+    missing_skills=best.get("missing_skills", []),
+    explanation=(
+        f"Matched skills: {', '.join(best.get('matched_skills', []))}. "
+        f"Missing skills: {', '.join(best.get('missing_skills', []))}."
+        if best.get("matched_skills") or best.get("missing_skills")
+        else "No significant skill overlap detected."
+    ),
+)
+
 
     db.add(score)
     await db.commit()

@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 from uuid import UUID
 from datetime import datetime
 
@@ -30,9 +30,15 @@ class MatchScoreOut(BaseModel):
     user_id: UUID
     application_id: UUID
     job_id: UUID
+
     similarity_score: Optional[float]
     regression_prediction: Optional[float]
     model_used: Optional[str]
+
+    matched_skills: Optional[List[str]] = None
+    missing_skills: Optional[List[str]] = None
+    explanation: Optional[str] = None
+
     created_at: Optional[datetime]
 
     model_config = {"from_attributes": True}

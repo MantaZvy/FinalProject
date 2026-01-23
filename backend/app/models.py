@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional
 from datetime import date, datetime
 import uuid
 
@@ -159,9 +159,9 @@ class MatchScores(Base):
     similarity_score: Mapped[Optional[float]] = mapped_column(Double(53))
     regression_prediction: Mapped[Optional[float]] = mapped_column(Double(53))
     model_used: Mapped[Optional[str]] = mapped_column(String(100))
-    matched_skills: Mapped[Optional[List[str]]] = mapped_column(ARRAY(String),nullable=True,)
-    missing_skills: Mapped[Optional[List[str]]] = mapped_column(ARRAY(String),nullable=True,)
-    explanation: Mapped[Optional[str]] = mapped_column(String,nullable=True,)
+    matched_skills = mapped_column(ARRAY(Text), nullable=True)
+    missing_skills = mapped_column(ARRAY(Text), nullable=True)
+    explanation = mapped_column(Text, nullable=True)
     created_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), server_default=text("now()"))
     application: Mapped[Optional['Applications']] = relationship('Applications', back_populates='match_scores')
     job: Mapped[Optional['JobDescriptions']] = relationship('JobDescriptions', back_populates='match_scores')
