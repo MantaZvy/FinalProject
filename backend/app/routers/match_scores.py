@@ -5,6 +5,7 @@ from app.schemas.match_score import MatchScoreCreate, MatchScoreUpdate, MatchSco
 from app.nlp.match_scorer import keyword_overlap_matcher, weighted_skill_matcher
 from app.nlp.model_selector import select_best_model
 from app.models import MatchScores, Applications, JobDescriptions, JobSeeker, Documents
+from app.nlp.recommendations import generate_recommendations
 from app.db import get_db
 import uuid
 import re
@@ -128,7 +129,7 @@ async def compute_match_score_for_application(
     )
     if not resume:
         raise HTTPException(status_code=404, detail="Resume not found")
-    #normalise resume data (similarity score)
+
     resume_data = normalize_resume(resume.content)
     job_data = {
         "skills": job.skills_required or [],
@@ -136,31 +137,35 @@ async def compute_match_score_for_application(
     }
 
     results = [
-    keyword_overlap_matcher(resume_data, job_data),
-    weighted_skill_matcher(resume_data, job_data),
-]
+        keyword_overlap_matcher(resume_data, job_data),
+        weighted_skill_matcher(resume_data, job_data),
+    ]
 
     best = select_best_model(results)
 
     score = MatchScores(
-    user_id=application.user_id,
-    application_id=application.application_id,
-    job_id=job.job_id,
-    similarity_score=best["similarity_score"],
-    model_used=f'{best["model_name"]}:{best["model_version"]}',
-    matched_skills=best.get("matched_skills", []),
-    missing_skills=best.get("missing_skills", []),
-    explanation=(
-        f"Matched skills: {', '.join(best.get('matched_skills', []))}. "
-        f"Missing skills: {', '.join(best.get('missing_skills', []))}."
-        if best.get("matched_skills") or best.get("missing_skills")
-        else "No significant skill overlap detected."
-    ),
-)
-
+        user_id=application.user_id,
+        application_id=application.application_id,
+        job_id=job.job_id,
+        similarity_score=best["similarity_score"],
+        model_used=f'{best["model_name"]}:{best["model_version"]}',
+        matched_skills=best.get("matched_skills", []),
+        missing_skills=best.get("missing_skills", []),
+        explanation=(
+            f"Matched skills: {', '.join(best.get('matched_skills', []))}. "
+            f"Missing skills: {', '.join(best.get('missing_skills', []))}."
+            if best.get("matched_skills") or best.get("missing_skills")
+            else "No significant skill overlap detected."
+        ),
+    )
 
     db.add(score)
     await db.commit()
     await db.refresh(score)
 
-    return score
+    recommendations = generate_recommendations(score.missing_skills or [])
+
+    return {
+        **score.__dict__,
+        "recommendations": recommendations,
+    }
