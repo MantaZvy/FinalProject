@@ -165,7 +165,7 @@ async def compute_match_score_for_application(
 
     recommendations = generate_recommendations(score.missing_skills or [])
 
-    return {
+    return {#dynamic generation with recs
         **score.__dict__,
         "recommendations": recommendations,
     }
