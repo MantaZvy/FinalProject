@@ -30,6 +30,7 @@ app.include_router(calendar_events.router)
 app.include_router(email_events.router)
 app.include_router(job_seekers.router)
 app.include_router(nlp.router)
+app.include_router(ai_generation.router)
 
 # Root endpoints
 @app.get("/")

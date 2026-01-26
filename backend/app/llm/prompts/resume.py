@@ -4,23 +4,30 @@ def build_resume_prompt(
     years_experience: int,
     skills: list[str],
     target_role: str,
+    resume_summary: str | None = None,
 ) -> str:
-    return f"""
-You are a professional resume writer, helping applicants to write a professional, ATS-friendly resume.
+    profile_section = resume_summary or "Generate a concise professional candidate summary highlighting key achievements and experience."
 
-Generate a tailored resume for the candidate below.
+    return f"""
+You are a professional career assistant.
+
+Write a tailored resume for the following candidate.
 
 Candidate name: {candidate_name}
 Current role: {current_role}
 Years of experience: {years_experience}
 Target role: {target_role}
 
-Core skills:
+Candidate profile:
+{profile_section}
+
+Key skills:
 {", ".join(skills)}
 
 Rules:
-- Use concise bullet points
+- Professional and confident tone
 - No emojis
-- ATS-friendly formatting
-- One page maximum
+- Focus on accomplishments and measurable results
+- Keep it concise and structured
+- Maximum 2 pages
 """
