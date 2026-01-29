@@ -16,10 +16,11 @@ def build_generation_input(
             "skills": resume_content.get("skills", []),
             "experience": resume_content.get("experience", []),
             "education": resume_content.get("education", []),
+            "summary": resume_content.get("summary", ""),  # optional for cover letters
         },
         "job": {
-            "title": job.title,
-            "company": job.company_name,
+            "title": job.title or "Unknown Role",
+            "company": job.company or "Unknown Company",
             "requirements": job.skills_required or [],
             "keywords": job.keywords or [],
         },
@@ -29,7 +30,7 @@ def build_generation_input(
             "missing_skills": getattr(match_score, "missing_skills", []),
         },
         "application_metadata": {
-         "application_id": str(application.application_id),
-         "submission_date": str(application.created_at),
+            "application_id": str(application.application_id),
+            "submission_date": str(application.created_at),
         }
     }
