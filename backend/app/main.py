@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 from app.db import get_db
-from app.routers import jobs, applications, documents, match_scores, nlp_logs, calendar_events, email_events, job_seekers, nlp
+from app.routers import jobs, applications, documents, match_scores, nlp_logs, calendar_events, email_events, job_seekers, nlp, ai_generation
 
 
 app = FastAPI()

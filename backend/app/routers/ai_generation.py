@@ -7,7 +7,7 @@ from app.nlp.generation.input_builder import build_generation_input
 from app.llm.document_generation import generate_resume, generate_cover_letter
 import uuid
 
-router = APIRouter(prefix="/ai/generate", tags=["AI Generation"])
+router = APIRouter(prefix="/ai_generation", tags=["AI Generation"])
 
 @router.post(
     "/resume/{application_id}",
