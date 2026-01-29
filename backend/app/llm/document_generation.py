@@ -43,12 +43,15 @@ _generator = DocumentGenerator(provider="ollama")
 
 
 async def generate_resume(input_data: dict) -> dict:
+    candidate = input_data["candidate"]
+    job = input_data["job"]
+
     content = await _generator.generate_resume(
-        candidate_name=input_data["candidate_name"],
-        current_role=input_data["current_role"],
-        years_experience=input_data["years_experience"],
-        skills=input_data["skills"],
-        target_role=input_data["target_role"],
+        candidate_name=candidate.get("name", "Unknown Candidate"),
+        current_role=candidate.get("experience", [""])[0] if candidate.get("experience") else "Unknown Role",
+        years_experience=len(candidate.get("experience", [])),
+        skills=candidate.get("skills", []),
+        target_role=job.get("title", "Unknown Role"),
     )
 
     return {
@@ -59,11 +62,15 @@ async def generate_resume(input_data: dict) -> dict:
 
 
 async def generate_cover_letter(input_data: dict) -> dict:
+    candidate = input_data["candidate"]
+    job = input_data["job"]
+    match = input_data["match"]
+
     content = await _generator.generate_cover_letter(
-        candidate_name=input_data["candidate_name"],
-        target_company=input_data["target_company"],
-        target_role=input_data["target_role"],
-        matched_skills=input_data["matched_skills"],
+        candidate_name=candidate.get("name", "Unknown Candidate"),
+        target_company=job.get("company", "Unknown Company"),
+        target_role=job.get("title", "Unknown Role"),
+        matched_skills=match.get("matched_skills", []),
     )
 
     return {
