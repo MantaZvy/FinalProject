@@ -38,7 +38,8 @@ class DocumentGenerator:
             matched_skills=matched_skills,
         )
         return await self.llm.generate(prompt)
-    
+
+
 _generator = DocumentGenerator(provider="ollama")
 
 
@@ -46,10 +47,17 @@ async def generate_resume(input_data: dict) -> dict:
     candidate = input_data["candidate"]
     job = input_data["job"]
 
+    experience = candidate.get("experience", [])
+
     content = await _generator.generate_resume(
-        candidate_name=candidate.get("name", "Unknown Candidate"),
-        current_role=candidate.get("experience", [""])[0] if candidate.get("experience") else "Unknown Role",
-        years_experience=len(candidate.get("experience", [])),
+    
+        candidate_name=candidate.get("candidate_name", "Unknown Candidate"),
+
+        
+        current_role=experience[0] if experience else "Software Developer",
+
+        years_experience=max(len(experience) // 3, 1),
+
         skills=candidate.get("skills", []),
         target_role=job.get("title", "Unknown Role"),
     )
@@ -67,7 +75,7 @@ async def generate_cover_letter(input_data: dict) -> dict:
     match = input_data["match"]
 
     content = await _generator.generate_cover_letter(
-        candidate_name=candidate.get("name", "Unknown Candidate"),
+        candidate_name=candidate.get("candidate_name", "Unknown Candidate"),
         target_company=job.get("company", "Unknown Company"),
         target_role=job.get("title", "Unknown Role"),
         matched_skills=match.get("matched_skills", []),
