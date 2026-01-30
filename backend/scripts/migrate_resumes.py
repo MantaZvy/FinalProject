@@ -41,7 +41,7 @@ async def migrate_resumes():
                 exp_lines = exp_match.group(1).splitlines()
                 experience = [e.strip() for e in exp_lines if e.strip()]
 
-            # Store structured JSON
+            # store json
             structured_content = {
                 "candidate_name": candidate_name,
                 "resume_summary": profile_summary,

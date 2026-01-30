@@ -1,7 +1,6 @@
 from typing import Optional
 from datetime import date, datetime
 import uuid
-
 from sqlalchemy import ARRAY, Date, DateTime, Double, ForeignKeyConstraint, PrimaryKeyConstraint, String, Text, Uuid, text, Column, ForeignKey
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
@@ -100,7 +99,7 @@ class Documents(Base):
     document_id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, server_default=text('uuid_generate_v4()'))
     user_id: Mapped[Optional[uuid.UUID]] = mapped_column(Uuid)
     doc_type: Mapped[Optional[str]] = mapped_column(String(50))
-    content: Mapped[Optional[str]] = mapped_column(Text)
+    content: Mapped[Optional[dict]] = mapped_column(JSONB)
     file_path: Mapped[Optional[str]] = mapped_column(Text)
     created_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), server_default=text("now()"))
 
