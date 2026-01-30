@@ -50,12 +50,13 @@ async def generate_resume(input_data: dict) -> dict:
     experience = candidate.get("experience", [])
 
     content = await _generator.generate_resume(
-    
-        candidate_name=candidate.get("candidate_name", "Unknown Candidate"),
+      
+        candidate_name=candidate.get("name", "Unknown Candidate"),
 
-        
+     
         current_role=experience[0] if experience else "Software Developer",
 
+    
         years_experience=max(len(experience) // 3, 1),
 
         skills=candidate.get("skills", []),
