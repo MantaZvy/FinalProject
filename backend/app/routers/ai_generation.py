@@ -54,7 +54,7 @@ async def generate_resume_for_application(
         job=job,
         match_score=match_score,
     )
-
+    print("GENERATION INPUT:", generation_input)
     result = await generate_resume(generation_input)
 
     return {
@@ -109,7 +109,7 @@ async def generate_cover_letter_for_application(
         job=job,
         match_score=match_score,
     )
-
+    print("GENERATION INPUT:", generation_input)
     result = await generate_cover_letter(generation_input)
 
     return {

@@ -1,36 +1,39 @@
-from typing import Dict, Any
-from app.models import Applications, JobDescriptions, Documents, MatchScores
-
-
 def build_generation_input(
-    application: Applications,
-    resume: Documents,
-    job: JobDescriptions,
-    match_score: MatchScores,
-) -> Dict[str, Any]:
+    application,
+    resume,
+    job,
+    match_score,
+) -> dict:
 
-    resume_content = resume.content if isinstance(resume.content, dict) else {}
+    resume_data = resume.content
+    if isinstance(resume_data, str):
+        import json
+        resume_data = json.loads(resume_data)
+
+    candidate = {
+        "name": resume_data.get("candidate_name"),
+        "skills": resume_data.get("skills", []),
+        "experience": resume_data.get("experience", []),
+        "summary": resume_data.get("resume_summary"),
+    }
+
+    job_data = {
+        "title": job.title,
+        "company": job.company,
+        "description": job.description,
+        "skills_required": job.skills_required or [],
+    }
+
+    match = {
+        "matched_skills": match_score.matched_skills or [],
+        "missing_skills": match_score.missing_skills or [],
+        "similarity_score": match_score.similarity_score,
+    }
 
     return {
-        "candidate": {
-            "skills": resume_content.get("skills", []),
-            "experience": resume_content.get("experience", []),
-            "education": resume_content.get("education", []),
-            "summary": resume_content.get("summary", ""),  # optional for cover letters
-        },
-        "job": {
-            "title": job.title or "Unknown Role",
-            "company": job.company or "Unknown Company",
-            "requirements": job.skills_required or [],
-            "keywords": job.keywords or [],
-        },
-        "match": {
-            "similarity_score": match_score.similarity_score,
-            "matched_skills": getattr(match_score, "matched_skills", []),
-            "missing_skills": getattr(match_score, "missing_skills", []),
-        },
-        "application_metadata": {
-            "application_id": str(application.application_id),
-            "submission_date": str(application.created_at),
-        }
+        "candidate": candidate,
+        "job": job_data,
+        "match": match,
+        "application_id": application.application_id,
+        "user_id": application.user_id,
     }
