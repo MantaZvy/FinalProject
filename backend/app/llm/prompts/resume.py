@@ -1,33 +1,48 @@
+
 def build_resume_prompt(
     candidate_name: str,
-    current_role: str,
-    years_experience: int,
+    structured_experience: list[dict],
     skills: list[str],
     target_role: str,
-    resume_summary: str | None = None,
 ) -> str:
-    profile_section = resume_summary or "Generate a concise professional candidate summary highlighting key achievements and experience."
+    experience_block = []
+
+    for role in structured_experience:
+        experience_block.append(
+            f"""
+Company & Dates: {role.get("company_and_dates", "N/A")}
+Title: {role.get("title", "N/A")}
+Responsibilities:
+- """ + "\n- ".join(role.get("bullets", []))
+        )
+
+    experience_text = "\n".join(experience_block)
 
     return f"""
-You are a professional career assistant.
+You are a professional resume editor.
 
-Write a tailored resume for the following candidate.
+Your task is to REWRITE the candidate's resume using ONLY the information provided.
+DO NOT invent roles, years of experience, achievements, metrics, or responsibilities.
+DO NOT infer seniority.
+DO NOT add skills not listed.
 
-Candidate name: {candidate_name}
-Current role: {current_role}
-Years of experience: {years_experience}
-Target role: {target_role}
+Candidate Name:
+{candidate_name}
 
-Candidate profile:
-{profile_section}
+Target Role:
+{target_role}
 
-Key skills:
+Skills (use exactly as written):
 {", ".join(skills)}
 
-Rules:
-- Professional and confident tone
+Work Experience (verbatim source data):
+{experience_text}
+
+Instructions:
+- Rewrite into a clean, professional resume format
+- Preserve factual accuracy exactly
+- You may rephrase wording for clarity, but not add new facts
+- If information is missing, leave it out
+- No placeholders such as [Insert], [Prior Experience], or fabricated metrics
 - No emojis
-- Focus on accomplishments and measurable results
-- Keep it concise and structured
-- Maximum 2 pages
 """

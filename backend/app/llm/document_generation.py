@@ -1,6 +1,52 @@
+from typing import List, Optional
+
 from app.llm.client import LLMClient
 from app.llm.prompts.resume import build_resume_prompt
 from app.llm.prompts.cover_letter import build_cover_letter_prompt
+from app.schemas.experience import ExperienceRole
+
+
+def normalize_experience(raw_experience: List[str]) -> List[ExperienceRole]:
+    roles: List[ExperienceRole] = []
+    current: Optional[ExperienceRole] = None
+
+    for line in raw_experience:
+        line = line.strip()
+        if not line:
+            continue
+
+        # Detect company + date line
+        if (
+            " - " in line
+            and any(
+                m in line
+                for m in [
+                    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+                ]
+            )
+        ):
+            if current is not None:
+                roles.append(current)
+
+            current = ExperienceRole(
+                company_and_dates=line,
+                title=None,
+                bullets=[],
+            )
+
+        # Likely job title
+        elif current is not None and current.title is None and len(line.split()) <= 5:
+            current.title = line
+
+        # Responsibility bullet
+        elif current is not None:
+            current.bullets.append(line)
+
+    if current is not None:
+        roles.append(current)
+
+    return roles
 
 
 class DocumentGenerator:
@@ -10,15 +56,13 @@ class DocumentGenerator:
     async def generate_resume(
         self,
         candidate_name: str,
-        current_role: str,
-        years_experience: int,
-        skills: list[str],
+        structured_experience: List[ExperienceRole],
+        skills: List[str],
         target_role: str,
     ) -> str:
         prompt = build_resume_prompt(
             candidate_name=candidate_name,
-            current_role=current_role,
-            years_experience=years_experience,
+            structured_experience=[role.dict() for role in structured_experience],
             skills=skills,
             target_role=target_role,
         )
@@ -29,7 +73,7 @@ class DocumentGenerator:
         candidate_name: str,
         target_company: str,
         target_role: str,
-        matched_skills: list[str],
+        matched_skills: List[str],
     ) -> str:
         prompt = build_cover_letter_prompt(
             candidate_name=candidate_name,
@@ -47,18 +91,12 @@ async def generate_resume(input_data: dict) -> dict:
     candidate = input_data["candidate"]
     job = input_data["job"]
 
-    experience = candidate.get("experience", [])
+    raw_experience = candidate.get("experience", [])
+    structured_experience = normalize_experience(raw_experience)
 
     content = await _generator.generate_resume(
-      
         candidate_name=candidate.get("name", "Unknown Candidate"),
-
-     
-        current_role=experience[0] if experience else "Software Developer",
-
-    
-        years_experience=max(len(experience) // 3, 1),
-
+        structured_experience=structured_experience,
         skills=candidate.get("skills", []),
         target_role=job.get("title", "Unknown Role"),
     )
@@ -66,7 +104,7 @@ async def generate_resume(input_data: dict) -> dict:
     return {
         "content": content,
         "model": "mistral",
-        "prompt_version": "resume_v1",
+        "prompt_version": "resume_v2",
     }
 
 
@@ -76,7 +114,7 @@ async def generate_cover_letter(input_data: dict) -> dict:
     match = input_data["match"]
 
     content = await _generator.generate_cover_letter(
-        candidate_name=candidate.get("candidate_name", "Unknown Candidate"),
+        candidate_name=candidate.get("name", "Unknown Candidate"),
         target_company=job.get("company", "Unknown Company"),
         target_role=job.get("title", "Unknown Role"),
         matched_skills=match.get("matched_skills", []),
