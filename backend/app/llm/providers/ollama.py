@@ -8,7 +8,7 @@ async def generate(
     prompt: str,
     model: str = DEFAULT_MODEL,
 ) -> str:
-    async with httpx.AsyncClient(timeout=60) as client:
+    async with httpx.AsyncClient(timeout=120.0) as client:
         response = await client.post(
             OLLAMA_URL,
             json={

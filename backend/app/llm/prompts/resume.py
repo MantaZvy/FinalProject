@@ -18,8 +18,7 @@ Responsibilities:
 
     experience_text = "\n".join(experience_block)
 
-    return f"""
-You are a professional resume editor.
+    return f"""You are a professional resume editor.
 
 Your task is to REWRITE the candidate's resume using ONLY the information provided.
 DO NOT invent roles, years of experience, achievements, metrics, or responsibilities.

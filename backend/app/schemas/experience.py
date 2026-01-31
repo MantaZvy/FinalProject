@@ -1,6 +1,8 @@
-from typing import TypedDict, Optional, List
+from typing import TypedDict, List, Optional
 
-class ExperienceRole(TypedDict):
+
+class ExperienceRoleDict(TypedDict):
     company_and_dates: str
     title: Optional[str]
     bullets: List[str]
+

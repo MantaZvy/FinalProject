@@ -3,45 +3,36 @@ from typing import List, Optional
 from app.llm.client import LLMClient
 from app.llm.prompts.resume import build_resume_prompt
 from app.llm.prompts.cover_letter import build_cover_letter_prompt
-from app.schemas.experience import ExperienceRole
+from app.schemas.experience import ExperienceRoleDict 
 
 
-def normalize_experience(raw_experience: List[str]) -> List[ExperienceRole]:
-    roles: List[ExperienceRole] = []
-    current: Optional[ExperienceRole] = None
+def normalize_experience(raw_experience: List[str]) -> List[ExperienceRoleDict]:
+    roles: List[ExperienceRoleDict] = []
+    current: Optional[ExperienceRoleDict] = None
 
     for line in raw_experience:
         line = line.strip()
         if not line:
             continue
 
-        # Detect company + date line
-        if (
-            " - " in line
-            and any(
-                m in line
-                for m in [
-                    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
-                ]
-            )
-        ):
+        if " - " in line:
             if current is not None:
                 roles.append(current)
 
-            current = ExperienceRole(
-                company_and_dates=line,
-                title=None,
-                bullets=[],
-            )
+            current = {
+                "company_and_dates": line,
+                "title": None,
+                "bullets": [],
+            }
+            continue
 
-        # Likely job title
-        elif current is not None and current.title is None and len(line.split()) <= 5:
-            current.title = line
+        if current is None:
+            continue
 
-        # Responsibility bullet
-        elif current is not None:
-            current.bullets.append(line)
+        if current["title"] is None and len(line.split()) <= 5:
+            current["title"] = line
+        else:
+            current["bullets"].append(line)
 
     if current is not None:
         roles.append(current)
@@ -49,20 +40,22 @@ def normalize_experience(raw_experience: List[str]) -> List[ExperienceRole]:
     return roles
 
 
+
 class DocumentGenerator:
     def __init__(self, provider: str = "ollama"):
         self.llm = LLMClient(provider)
 
     async def generate_resume(
-        self,
-        candidate_name: str,
-        structured_experience: List[ExperienceRole],
-        skills: List[str],
-        target_role: str,
-    ) -> str:
+    self,
+    candidate_name: str,
+    structured_experience: List[ExperienceRoleDict],
+    skills: List[str],
+    target_role: str,
+) -> str:
+
         prompt = build_resume_prompt(
             candidate_name=candidate_name,
-            structured_experience=[role.dict() for role in structured_experience],
+            structured_experience=structured_experience,
             skills=skills,
             target_role=target_role,
         )
