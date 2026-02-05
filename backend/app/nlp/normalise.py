@@ -26,11 +26,15 @@ def normalize_token(token: str) -> str | None:
     return SKILL_ALIASES.get(token, token)
 
 def normalize_skills(raw: Iterable[str]) -> Set[str]:
-    normalized = set()
+    normalized: Set[str] = set()
 
     for item in raw:
-        token = normalize_token(item)
-        if token:
-            normalized.add(token)
+        # Split on commas, slashes, parentheses, and whitespace
+        parts = re.split(r"[,\n/()]+|\s+", item)
+
+        for part in parts:
+            token = normalize_token(part)
+            if token:
+                normalized.add(token)
 
     return normalized

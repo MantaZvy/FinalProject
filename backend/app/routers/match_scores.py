@@ -112,6 +112,12 @@ async def compute_match_score_for_application(
     )
     if not application:
         raise HTTPException(status_code=404, detail="Application not found")
+    
+    user = await db.scalar(
+    select(JobSeeker).where(JobSeeker.user_id == application.user_id)
+)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
 
     job = await db.scalar(
         select(JobDescriptions).where(JobDescriptions.job_id == application.job_id)
@@ -130,12 +136,16 @@ async def compute_match_score_for_application(
     if not resume:
         raise HTTPException(status_code=404, detail="Resume not found")
 
-    resume_data = normalize_resume(resume.content)
+    
     job_data = {
         "skills": job.skills_required or [],
         "keywords": job.keywords or [],
     }
-
+    resume_data = {
+    "skills": user.skills or [],
+    "keywords": user.keywords or [],
+    "experience": user.experience,
+}
     results = [
         keyword_overlap_matcher(resume_data, job_data),
         weighted_skill_matcher(resume_data, job_data),
@@ -158,6 +168,7 @@ async def compute_match_score_for_application(
             else "No significant skill overlap detected."
         ),
     )
+ 
 
     db.add(score)
     await db.commit()
