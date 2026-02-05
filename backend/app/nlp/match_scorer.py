@@ -39,12 +39,9 @@ def keyword_overlap_matcher(resume: Dict[str, Any], job: Dict[str, Any]) -> Matc
     }
 
 def weighted_skill_matcher(resume: Dict[str, Any], job: Dict[str, Any]) -> MatchResult:
-    print("DEBUG resume keys:", resume.keys())
-    print("DEBUG resume skills raw:", resume.get("skills"))
+    
     resume_skills = extract_resume_skills(resume)
     job_skills = normalize_skills(job.get("skills", []))
-    print("DEBUG resume_skills:", resume_skills)
-    print("DEBUG job_skills:", job_skills)
 
     if not job_skills:
         return {

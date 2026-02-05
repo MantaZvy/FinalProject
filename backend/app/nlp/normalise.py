@@ -29,7 +29,6 @@ def normalize_skills(raw: Iterable[str]) -> Set[str]:
     normalized: Set[str] = set()
 
     for item in raw:
-        # Split on commas, slashes, parentheses, and whitespace
         parts = re.split(r"[,\n/()]+|\s+", item)
 
         for part in parts:
