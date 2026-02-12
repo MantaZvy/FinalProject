@@ -5,6 +5,8 @@ def build_cover_letter_prompt(
     target_company: str,
     target_role: str,
     matched_skills: list[str],
+    job_description: str,
+    job_required_skills: list[str],
 ) -> str:
 
     experience_block = []
@@ -41,11 +43,17 @@ Role Applied For:
 Company:
 {target_company}
 
-Skills:
+Candidate Skills:
 {", ".join(skills)}
 
 Matched Skills:
 {", ".join(matched_skills)}
+
+Job Required Skills:
+{", ".join(job_required_skills)}
+
+Job Description:
+{job_description}
 
 Work Experience:
 {experience_text}
@@ -58,5 +66,5 @@ Instructions:
 - Do not fabricate experience
 - Do not add placeholders
 - No emojis
-- 250 words max
+- 200 words max
 """
