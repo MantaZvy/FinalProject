@@ -62,12 +62,14 @@ class DocumentGenerator:
         return await self.llm.generate(prompt)
 
     async def generate_cover_letter(
-        self,
-        candidate_name: str,
-        target_company: str,
-        target_role: str,
-        matched_skills: List[str],
-    ) -> str:
+    self,
+    candidate_name: str,
+    structured_experience: List[ExperienceRoleDict],
+    skills: List[str],
+    target_company: str,
+    target_role: str,
+    matched_skills: List[str],
+) -> str:
         prompt = build_cover_letter_prompt(
             candidate_name=candidate_name,
             target_company=target_company,
@@ -106,8 +108,13 @@ async def generate_cover_letter(input_data: dict) -> dict:
     job = input_data["job"]
     match = input_data["match"]
 
+    raw_experience = candidate.get("experience", [])
+    structured_experience = normalize_experience(raw_experience)
+
     content = await _generator.generate_cover_letter(
         candidate_name=candidate.get("name", "Unknown Candidate"),
+        structured_experience=structured_experience,
+        skills=candidate.get("skills", []),
         target_company=job.get("company", "Unknown Company"),
         target_role=job.get("title", "Unknown Role"),
         matched_skills=match.get("matched_skills", []),

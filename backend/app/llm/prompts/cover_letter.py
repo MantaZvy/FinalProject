@@ -1,31 +1,62 @@
 def build_cover_letter_prompt(
     candidate_name: str,
+    structured_experience: list[dict],
+    skills: list[str],
     target_company: str,
     target_role: str,
     matched_skills: list[str],
-    resume_summary: str | None = None,
 ) -> str:
-    profile_section = resume_summary or "Generate a concise professional candidate summary based on skills and experience."
+
+    experience_block = []
+
+    for role in structured_experience:
+        experience_block.append(
+            f"""
+Company & Dates: {role.get("company_and_dates", "N/A")}
+Title: {role.get("title", "N/A")}
+Responsibilities:
+- """ + "\n- ".join(role.get("bullets", []))
+        )
+
+    experience_text = "\n".join(experience_block)
 
     return f"""
-You are a professional career assistant.
+You are a professional cover letter writer.
 
-Write a tailored cover letter for the following candidate.
+Write a tailored cover letter using ONLY the information provided.
 
-Candidate name: {candidate_name}
-Role applied for: {target_role}
-Company: {target_company}
+You MUST NOT:
+- Invent years of experience
+- Invent previous companies
+- Invent metrics or achievements
+- Claim seniority
+- Add technologies not listed
 
-Candidate profile:
-{profile_section}
+Candidate Name:
+{candidate_name}
 
-Key matched skills:
+Role Applied For:
+{target_role}
+
+Company:
+{target_company}
+
+Skills:
+{", ".join(skills)}
+
+Matched Skills:
 {", ".join(matched_skills)}
 
-Rules:
-- Professional and confident tone
+Work Experience:
+{experience_text}
+
+Instructions:
+- Align the candidate to the role realistically
+- Emphasize transferable strengths where direct match is limited
+- Use confident but grounded tone
+- Avoid generic phrases
+- Do not fabricate experience
+- Do not add placeholders
 - No emojis
-- Do not mention missing skills
-- One page and 250 words maximum
-- Formal tone
+- 250 words max
 """

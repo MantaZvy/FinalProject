@@ -18,12 +18,19 @@ Responsibilities:
 
     experience_text = "\n".join(experience_block)
 
-    return f"""You are a professional resume editor.
+    return f"""You are an expert technical resume strategist.
 
-Your task is to REWRITE the candidate's resume using ONLY the information provided.
-DO NOT invent roles, years of experience, achievements, metrics, or responsibilities.
-DO NOT infer seniority.
-DO NOT add skills not listed.
+Your task is to transform the candidate's raw experience into a compelling, ATS-optimized resume tailored to the target role.
+
+You may enhance bullets with realistic impact framing and contextual detail, but you must not fabricate:
+- Specific numbers or metrics
+- Tools not listed
+- Additional roles
+- Years of experience
+
+If metrics are not provided, describe outcomes in terms of impact, efficiency, collaboration, scale, or problem-solving without inventing numbers.
+
+Position the candidate as an aspiring {target_role} with strong technical foundations and transferable experience.
 
 Candidate Name:
 {candidate_name}
@@ -31,17 +38,18 @@ Candidate Name:
 Target Role:
 {target_role}
 
-Skills (use exactly as written):
+Skills (use exactly as written, but you may group them strategically):
 {", ".join(skills)}
 
-Work Experience (verbatim source data):
+Work Experience:
 {experience_text}
 
-Instructions:
-- Rewrite into a clean, professional resume format
-- Preserve factual accuracy exactly
-- You may rephrase wording for clarity, but not add new facts
-- If information is missing, leave it out
-- No placeholders such as [Insert], [Prior Experience], or fabricated metrics
+Output Requirements:
+- Strong professional summary aligned with the target role
+- Impact-focused bullet points (not duty descriptions)
+- Clean ATS-friendly formatting
+- No placeholders
 - No emojis
+- No generic filler language
+- No mention of these instructions
 """
