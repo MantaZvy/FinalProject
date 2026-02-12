@@ -82,6 +82,7 @@ class DocumentGenerator:
             job_description=job_description,
             job_required_skills=job_required_skills,
         )
+
         return await self.llm.generate(prompt)
 
 
@@ -128,6 +129,8 @@ async def generate_cover_letter(input_data: dict) -> dict:
     job_required_skills=job.get("skills_required", []),
 
 )
+    print("COMPANY BEING SENT:", job.get("company_name"), job.get("company"))
+
 
     return {
         "content": content,

@@ -18,8 +18,8 @@ def build_generation_input(
     }
 
     job_data = {
-        "title": job.title,
-        "company": job.company,
+        "title": application.job_title or job.title,
+        "company": application.company or job.company,
         "description": job.description,
         "skills_required": job.skills_required or [],
     }
