@@ -7,6 +7,7 @@ from app.nlp.model_selector import select_best_model
 from app.models import MatchScores, Applications, JobDescriptions, JobSeeker, Documents
 from app.nlp.recommendations import generate_recommendations
 from app.db import get_db
+from app.nlp.tfidf_matcher import tfidf_match
 import uuid
 import re
 
@@ -140,6 +141,7 @@ async def compute_match_score_for_application(
     job_data = {
         "skills": job.skills_required or [],
         "keywords": job.keywords or [],
+        "description": job.description or "",
     }
     resume_data = {
     "skills": user.skills or [],
@@ -149,6 +151,7 @@ async def compute_match_score_for_application(
     results = [
         keyword_overlap_matcher(resume_data, job_data),
         weighted_skill_matcher(resume_data, job_data),
+        tfidf_match(resume_data, job_data),
     ]
 
     best = select_best_model(results)
