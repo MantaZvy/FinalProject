@@ -139,9 +139,10 @@ async def compute_match_score_for_application(
 
     
     job_data = {
-        "skills": job.skills_required or [],
-        "keywords": job.keywords or [],
+        "title": job.title or "",
         "description": job.description or "",
+        "skills_required": job.skills_required or [],
+        "keywords": job.keywords or [],
     }
     resume_data = {
     "skills": user.skills or [],
@@ -153,6 +154,7 @@ async def compute_match_score_for_application(
         weighted_skill_matcher(resume_data, job_data),
         tfidf_match(resume_data, job_data),
     ]
+    print("MODEL RESULTS:", results)
 
     best = select_best_model(results)
 
