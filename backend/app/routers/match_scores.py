@@ -2,12 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.schemas.match_score import MatchScoreCreate, MatchScoreUpdate, MatchScoreOut
-from app.nlp.match_scorer import keyword_overlap_matcher, weighted_skill_matcher
-from app.nlp.model_selector import select_best_model
+from app.nlp.match_scorer import final_match
 from app.models import MatchScores, Applications, JobDescriptions, JobSeeker, Documents
 from app.nlp.recommendations import generate_recommendations
 from app.db import get_db
-from app.nlp.tfidf_matcher import tfidf_match
 import uuid
 import re
 
@@ -139,40 +137,34 @@ async def compute_match_score_for_application(
 
     
     job_data = {
-        "title": job.title or "",
-        "description": job.description or "",
-        "skills_required": job.skills_required or [],
-        "keywords": job.keywords or [],
-    }
+    "title": job.title or "",
+    "description": job.description or "",
+    "skills": job.skills_required or [],
+    "keywords": job.keywords or [],
+}
     resume_data = {
-    "skills": user.skills or [],
-    "keywords": user.keywords or [],
+    "skills": (user.skills or []) + (resume.content.get("skills", []) if resume and isinstance(resume.content, dict) else []),
+    "keywords": (user.keywords or []) + (resume.content.get("keywords", []) if resume and isinstance(resume.content, dict) else []),
     "experience": user.experience,
 }
-    results = [
-        keyword_overlap_matcher(resume_data, job_data),
-        weighted_skill_matcher(resume_data, job_data),
-        tfidf_match(resume_data, job_data),
-    ]
-    print("MODEL RESULTS:", results)
 
-    best = select_best_model(results)
+    best = final_match(resume_data, job_data)
 
     score = MatchScores(
-        user_id=application.user_id,
-        application_id=application.application_id,
-        job_id=job.job_id,
-        similarity_score=best["similarity_score"],
-        model_used=f'{best["model_name"]}:{best["model_version"]}',
-        matched_skills=best.get("matched_skills", []),
-        missing_skills=best.get("missing_skills", []),
-        explanation=(
-            f"Matched skills: {', '.join(best.get('matched_skills', []))}. "
-            f"Missing skills: {', '.join(best.get('missing_skills', []))}."
-            if best.get("matched_skills") or best.get("missing_skills")
-            else "No significant skill overlap detected."
-        ),
-    )
+    user_id=application.user_id,
+    application_id=application.application_id,
+    job_id=job.job_id,
+    similarity_score=best["similarity_score"],
+    model_used=f'{best["model_name"]}:{best["model_version"]}',
+    matched_skills=best.get("matched_skills", []),
+    missing_skills=best.get("missing_skills", []),
+    explanation=(
+        f"Matched skills: {', '.join(best.get('matched_skills', []))}. "
+        f"Missing skills: {', '.join(best.get('missing_skills', []))}."
+        if best.get("matched_skills") or best.get("missing_skills")
+        else "low alignment detected."
+    ),
+)
  
 
     db.add(score)
