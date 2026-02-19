@@ -24,7 +24,7 @@ def get_gmail_credentials():
                 CREDENTIALS_PATH,
                 SCOPES
             )
-            creds = flow.run_local_server(port=0)
+            creds = flow.run_local_server(port=8080)
 
         with open(TOKEN_PATH, "w") as token:
             token.write(creds.to_json())
