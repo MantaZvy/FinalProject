@@ -14,7 +14,7 @@ def fetch_application_emails(max_results: int = 10) -> List[Dict[str, Any]]:
 
     results = service.users().messages().list(
         userId="me",
-        q="(application OR interview OR recruiter OR position OR role OR job)",
+        q="newer_than:7d",#working only with recent emails to avoid irrelavent fetching
         maxResults=max_results
     ).execute()
 

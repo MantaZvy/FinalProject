@@ -2,9 +2,13 @@ from app.integration.gmail.service import fetch_application_emails
 
 if __name__ == "__main__":
     emails = fetch_application_emails(5)
-
-    for e in emails:
-        print("\n---")
-        print("From:", e["from"])
-        print("Subject:", e["subject"])
-        print("Snippet:", e["snippet"])
+    print("\n Appplication emails found:\n")
+    if not emails:
+        print("No application emails found.")
+    else:
+        for e in emails:
+            print("\n---")
+            print("From:", e["from"])
+            print("Subject:", e["subject"])
+            print("Snippet:", e["snippet"])
+            print("-" * 40)
