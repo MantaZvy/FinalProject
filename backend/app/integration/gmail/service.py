@@ -1,6 +1,7 @@
 from googleapiclient.discovery import build
 from app.integration.gmail.auth import get_gmail_credentials
 from typing import List, Dict, Any
+from app.integration.gmail.parser import detect_application_status
 
 
 
@@ -39,12 +40,14 @@ def fetch_application_emails(max_results: int = 10) -> List[Dict[str, Any]]:
                 sender = h["value"]
 
         snippet = msg_data.get("snippet", "")
+        status = detect_application_status(subject, snippet)
 
         emails.append({
             "id": msg["id"],
             "subject": subject,
             "from": sender,
-            "snippet": snippet
+            "snippet": snippet,
+            "status": status
         })
 
     return emails

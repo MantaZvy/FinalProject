@@ -11,4 +11,5 @@ if __name__ == "__main__":
             print("From:", e["from"])
             print("Subject:", e["subject"])
             print("Snippet:", e["snippet"])
+            print("Status:", e["status"])
             print("-" * 40)

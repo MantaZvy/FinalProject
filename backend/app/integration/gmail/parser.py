@@ -1,6 +1,7 @@
 import re
+from typing import Dict
 
-STATUS_RULES = {
+STATUS_RULES: Dict[str, list[str]] = {
     "rejected": [
         "unfortunately",
         "we regret to inform you",
@@ -32,10 +33,12 @@ STATUS_RULES = {
         "application submitted",
     ]
 }
-def detect_application_status(text: str) -> str:
-    text = text.lower()
+def detect_application_status(subject: str, snippet: str) -> str:
+    content = f"{subject} {snippet}".lower()
+
     for status, keywords in STATUS_RULES.items():
         for keyword in keywords:
-            if re.search(r'\b' + re.escape(keyword) + r'\b', text):
+            if re.search(r"\b" + re.escape(keyword) + r"\b", content):
                 return status
+
     return "unknown"

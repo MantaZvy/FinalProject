@@ -129,8 +129,8 @@ class EmailEvents(Base):
         ForeignKeyConstraint(['application_id'], ['applications.application_id'], ondelete='CASCADE', name='email_events_application_id_fkey'),
         PrimaryKeyConstraint('email_id', name='email_events_pkey')
     )
-
-    email_id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, server_default=text('uuid_generate_v4()'))
+    id: Mapped[uuid.UUID] = mapped_column(Uuid,primary_key=True,server_default=text('uuid_generate_v4()'))
+    gmail_message_id: Mapped[str] = mapped_column(String,unique=True,nullable=False)
     application_id: Mapped[Optional[uuid.UUID]] = mapped_column(Uuid)
     sender: Mapped[Optional[str]] = mapped_column(Text)
     subject: Mapped[Optional[str]] = mapped_column(Text)
