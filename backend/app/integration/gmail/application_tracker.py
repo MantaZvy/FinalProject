@@ -5,6 +5,32 @@ from sqlalchemy.orm import Session
 from datetime import datetime
 from uuid import uuid4
 
+STATUS_PRIORITY = {
+    "applied": 1,
+    "interview": 2,
+    "offer": 3
+}
+
+TERMINAL_STATUSES = {"rejected"}
+
+def should_update_status(current_status: str | None, new_status: str) -> bool:
+    if new_status == "unknown":
+        return False
+
+    if new_status in TERMINAL_STATUSES:
+        return True
+
+    if current_status in TERMINAL_STATUSES:
+        return False
+
+    if not current_status:
+        return True
+
+    current_rank = STATUS_PRIORITY.get(current_status, 0)
+    new_rank = STATUS_PRIORITY.get(new_status, 0)
+
+    return new_rank > current_rank
+
 def extract_domain(sender: str | None) -> str | None:
     if not sender or "@" not in sender:
         return None
@@ -21,7 +47,7 @@ def find_application_by_email(session: Session, user_id, sender: str, subject:st
             if app.company and domain in app.company.lower():
                 return app
     
-    for app in applications:#company in suject (email) to see if matching failed
+    for app in applications:#company in subject (email) to see if matching failed
         if app.company and app.company.lower() in subject.lower():
             return app
     for app in applications:#job title in subject see if matching failed 
@@ -60,22 +86,10 @@ def sync_gmail_applications(session: Session, user_id):
         )
         session.add(email_event)
 
-        if linked_application and status != "unknown":
+        if linked_application and should_update_status(
+            linked_application.status,
+            status
+        ):
             linked_application.status = status
     session.commit()
 
-def get_application_status():
-    emails = fetch_application_emails()
-    applications = []
-
-    for email in emails:
-        status = detect_application_status(email["subject"], email["snippet"])
-        if status != "unknown":
-            applications.append({
-                "email_id": email["id"],
-                "from": email["from"],
-                "subject": email["subject"],
-                "status": status
-            })
-
-    return applications
