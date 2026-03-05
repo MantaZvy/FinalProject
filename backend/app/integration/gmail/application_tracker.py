@@ -1,7 +1,8 @@
 from app.integration.gmail.service import fetch_application_emails
 from app.integration.gmail.parser import detect_application_status
 from app.models import Applications, EmailEvents
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from datetime import datetime
 from uuid import uuid4
 
@@ -36,11 +37,15 @@ def extract_domain(sender: str | None) -> str | None:
         return None
     return sender.split("@")[-1].lower()
 
-def find_application_by_email(session: Session, user_id, sender: str, subject:str):
+async def find_application_by_email(session: AsyncSession, user_id, sender: str, subject:str):
     domain = extract_domain(sender)
-    applications = session.query(Applications).filter(
-        Applications.user_id == user_id
-    ).all()
+    result = await session.execute(
+        select(Applications).where(
+            Applications.user_id == user_id
+        )
+    )
+
+    applications = result.scalars().all()
     
     if domain:#domain matching is more reliable than subject matching, so we prioritize
         for app in applications:
@@ -55,13 +60,16 @@ def find_application_by_email(session: Session, user_id, sender: str, subject:st
             return app
     return None
 
-def sync_gmail_applications(session: Session, user_id):
+async def sync_gmail_applications(session: AsyncSession, user_id):
     emails = fetch_application_emails()
     for email in emails:
         #duplication check
-        existing = session.query(EmailEvents).filter_by(
-            gmail_message_id=email["id"]
-        ).first()
+        result = await session.execute(
+            select(EmailEvents).where(
+                EmailEvents.gmail_message_id == email["id"]
+                )
+            )
+        existing = result.scalar_one_or_none()
         if existing:
             continue
         status = detect_application_status(
@@ -91,5 +99,5 @@ def sync_gmail_applications(session: Session, user_id):
             status
         ):
             linked_application.status = status
-    session.commit()
+    await session.commit()
 

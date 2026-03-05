@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.schemas.application import ApplicationCreate, ApplicationUpdate, ApplicationOut
 from app.models import Applications, JobDescriptions, JobSeeker
+from app.integration.gmail.application_tracker import sync_gmail_applications
 from app.db import get_db
 
 router = APIRouter(prefix="/applications", tags=["Applications"])
@@ -82,3 +83,15 @@ async def delete_application(application_id: str, db: AsyncSession = Depends(get
 
     await db.delete(application)
     await db.commit()
+    
+#Gmail sync endpoint
+@router.get("/sync-and-list/{user_id}", response_model=list[ApplicationOut])
+async def sync_and_get(user_id: str, db: AsyncSession = Depends(get_db)):
+
+    await sync_gmail_applications(db, user_id)
+
+    result = await db.execute(
+        select(Applications).where(Applications.user_id == user_id)
+    )
+
+    return result.scalars().all()
