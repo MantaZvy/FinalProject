@@ -137,6 +137,7 @@ class EmailEvents(Base):
     subject: Mapped[Optional[str]] = mapped_column(Text)
     snippet: Mapped[Optional[str]] = mapped_column(Text)
     detected_status: Mapped[Optional[str]] = mapped_column(String(50))
+    meeting_link: Mapped[Optional[str]] = mapped_column(Text)
     received_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
     processed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), server_default=text("now()"))
 

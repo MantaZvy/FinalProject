@@ -72,16 +72,10 @@ async def sync_gmail_applications(session: AsyncSession, user_id):
         existing = result.scalar_one_or_none()
         if existing:
             continue
-        content = f"{email['subject']} {email['snippet']} {email['body']}"
-        status = detect_application_status(
-            content
-        )
-        interview_date = extract_interview_datetime(
-            content
-        )
-        meeting_link = extract_meeting_link(
-            content
-        )
+        content = f" {email['subject']} {email['snippet']} {email['body']}"
+        status = detect_application_status(email["subject"], f"{email['snippet']} {email['body']}")
+        interview_date = extract_interview_datetime(content)
+        meeting_link = extract_meeting_link(content)
         linked_application = await find_application_by_email(
             session=session,
             user_id=user_id,
@@ -96,6 +90,7 @@ async def sync_gmail_applications(session: AsyncSession, user_id):
             snippet=email["snippet"],
             detected_status=status,
             received_at=datetime.utcnow(),
+            meeting_link=meeting_link,
             application_id=linked_application.application_id if linked_application else None
         )
         session.add(email_event)
@@ -105,7 +100,7 @@ async def sync_gmail_applications(session: AsyncSession, user_id):
                 linked_application.status = status#store status in db
             if interview_date and not linked_application.interview_date:#update if we don't have an interview date
                 linked_application.interview_date = interview_date
-            if meeting_link and not linked_application.meeting_link:#update if don't have meeting link
+            if meeting_link:#update if don't have meeting link
                 linked_application.meeting_link = meeting_link
             
             
