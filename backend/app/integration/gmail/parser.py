@@ -35,8 +35,8 @@ STATUS_RULES: Dict[str, list[str]] = {
         "application submitted",
     ]
 }
-def detect_application_status(subject: str, snippet: str) -> str:
-    content = f"{subject} {snippet}".lower()
+def detect_application_status(content: str) -> str:
+    content = content.lower()
 
     for status, keywords in STATUS_RULES.items():
         for keyword in keywords:
@@ -52,9 +52,7 @@ INTERVIEW_DATE_PATTERNS = [
 ]
 
 
-def extract_interview_datetime(subject: str, snippet: str) -> Optional[datetime]:
-    content = f"{subject} {snippet}"
-
+def extract_interview_datetime(content: str) -> Optional[datetime]:
     for pattern in INTERVIEW_DATE_PATTERNS:
         match = re.search(pattern, content, re.IGNORECASE)
         if match:
@@ -73,10 +71,7 @@ MEETING_LINK_PATTERNS = [
 ]
 
 
-def extract_meeting_link(subject: str, snippet: str) -> str | None: #detects meeting links in email_content
-
-    content = f"{subject} {snippet}"
-
+def extract_meeting_link(content: str) -> str | None: #detects meeting links in email_content
     for pattern in MEETING_LINK_PATTERNS:
         match = re.search(pattern, content)
         if match:
