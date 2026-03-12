@@ -32,7 +32,7 @@ def fetch_application_emails(max_results: int = 10) -> List[Dict[str, Any]]:
 
     results = service.users().messages().list(
         userId="me",
-        q="newer_than:7d",#working only with recent emails to avoid irrelavent fetching
+        q="newer_than:30d",
         maxResults=max_results
     ).execute()
 
@@ -59,7 +59,8 @@ def fetch_application_emails(max_results: int = 10) -> List[Dict[str, Any]]:
                 sender = h["value"]
 
         snippet = msg_data.get("snippet", "")
-        status = detect_application_status(content=f"{subject} {snippet} {body}")
+        full_text = f"{snippet} {body}"
+        status = detect_application_status(subject, full_text)
 
         emails.append({
             "id": msg["id"],

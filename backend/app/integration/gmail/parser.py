@@ -35,8 +35,8 @@ STATUS_RULES: Dict[str, list[str]] = {
         "application submitted",
     ]
 }
-def detect_application_status(content: str) -> str:
-    content = content.lower()
+def detect_application_status(subject: str, snippet: str) -> str:
+    content = f" {subject} {snippet}".lower()
 
     for status, keywords in STATUS_RULES.items():
         for keyword in keywords:
