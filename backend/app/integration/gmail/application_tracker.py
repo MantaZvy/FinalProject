@@ -1,5 +1,5 @@
 from app.integration.gmail.service import fetch_application_emails
-from app.integration.gmail.parser import detect_application_status, extract_interview_datetime, extract_meeting_link, 
+from app.integration.gmail.parser import detect_application_status, extract_interview_datetime, extract_meeting_link
 from app.models import Applications, EmailEvents
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
