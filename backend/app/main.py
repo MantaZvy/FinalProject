@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 from app.db import get_db
+from app.integration.gmail.gmail_sync import start_scheduler
 from app.routers import jobs, applications, documents, match_scores, nlp_logs, calendar_events, email_events, job_seekers, nlp, ai_generation
 
 
@@ -31,6 +32,10 @@ app.include_router(email_events.router)
 app.include_router(job_seekers.router)
 app.include_router(nlp.router)
 app.include_router(ai_generation.router)
+
+@app.on_event("startup")
+async def startup_event():
+    start_scheduler()
 
 # Root endpoints
 @app.get("/")

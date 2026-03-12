@@ -79,6 +79,8 @@ class Applications(Base):
     salary_range: Mapped[Optional[str]] = mapped_column(Text)
     notes: Mapped[Optional[str]] = mapped_column(Text)
     applied_date: Mapped[Optional[date]] = mapped_column(Date)
+    interview_date: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
+    meeting_link: Mapped[Optional[str]] = mapped_column(Text)
     created_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), server_default=text("now()"))
     updated_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), server_default=text("now()"))
 

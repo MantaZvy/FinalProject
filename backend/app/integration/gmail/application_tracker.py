@@ -1,5 +1,5 @@
 from app.integration.gmail.service import fetch_application_emails
-from app.integration.gmail.parser import detect_application_status
+from app.integration.gmail.parser import detect_application_status, extract_interview_datetime
 from app.models import Applications, EmailEvents
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -76,7 +76,11 @@ async def sync_gmail_applications(session: AsyncSession, user_id):
             email["subject"],
             email["snippet"]
         )
-        linked_application = find_application_by_email(
+        interview_date = extract_interview_datetime(
+            email["subject"],
+            email["snippet"]
+        )
+        linked_application = await find_application_by_email(
             session=session,
             user_id=user_id,
             sender=email["from"],
@@ -94,10 +98,12 @@ async def sync_gmail_applications(session: AsyncSession, user_id):
         )
         session.add(email_event)
 
-        if linked_application and should_update_status(
-            linked_application.status,
-            status
-        ):
-            linked_application.status = status
+        if linked_application:
+            if should_update_status(linked_application.status, status):#if new interview date, update status
+                linked_application.status = status#store status in db
+            if interview_date and not linked_application.interview_date:#update if we don't have an interview date
+                linked_application.interview_date = interview_date
+            
+            
     await session.commit()
 

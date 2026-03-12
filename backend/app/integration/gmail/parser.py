@@ -1,5 +1,7 @@
 import re
-from typing import Dict
+from typing import Dict, Optional 
+from datetime import datetime
+from dateutil import parser as date_parser
 
 STATUS_RULES: Dict[str, list[str]] = {
     "rejected": [
@@ -42,3 +44,42 @@ def detect_application_status(subject: str, snippet: str) -> str:
                 return status
 
     return "unknown"
+
+INTERVIEW_DATE_PATTERNS = [
+    r"\b(?:on\s)?(\d{1,2}\s(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s\d{2,4}\s(?:at\s)?\d{1,2}:\d{2}\s?(?:AM|PM)?)",
+    r"\b(?:on\s)?(\d{1,2}/\d{1,2}/\d{2,4}\s(?:at\s)?\d{1,2}:\d{2}\s?(?:AM|PM)?)",
+    r"\b(?:on\s)?([A-Za-z]+\s\d{1,2},?\s\d{4}\s(?:at\s)?\d{1,2}:\d{2}\s?(?:AM|PM)?)",
+]
+
+
+def extract_interview_datetime(subject: str, snippet: str) -> Optional[datetime]:
+    content = f"{subject} {snippet}"
+
+    for pattern in INTERVIEW_DATE_PATTERNS:
+        match = re.search(pattern, content, re.IGNORECASE)
+        if match:
+            try:
+                return date_parser.parse(match.group(1))
+            except Exception:
+                pass
+
+    return None
+
+MEETING_LINK_PATTERNS = [
+    r"https://meet\.google\.com/[a-zA-Z0-9\-]+",
+    r"https://zoom\.us/j/\d+",
+    r"https://[a-zA-Z0-9\-]*\.zoom\.us/j/\d+",
+    r"https://teams\.microsoft\.com/l/meetup-join/[^\s]+"
+]
+
+
+def extract_meeting_link(subject: str, snippet: str) -> str | None: #detects meeting links in email_content
+
+    content = f"{subject} {snippet}"
+
+    for pattern in MEETING_LINK_PATTERNS:
+        match = re.search(pattern, content)
+        if match:
+            return match.group(0)
+
+    return None
