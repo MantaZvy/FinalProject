@@ -1,5 +1,6 @@
 from app.integration.gmail.service import fetch_application_emails
 from app.integration.gmail.parser import detect_application_status, extract_interview_datetime, extract_meeting_link
+from app.integration.calendar.service import create_interview_event
 from app.models import Applications, EmailEvents
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -100,6 +101,11 @@ async def sync_gmail_applications(session: AsyncSession, user_id):
                 linked_application.status = status#store status in db
             if interview_date and not linked_application.interview_date:#update if we don't have an interview date
                 linked_application.interview_date = interview_date
+                create_interview_event(#if there's an interview date, create calendar event
+                    title=f"Interview - {linked_application.job_title} @ {linked_application.company}",
+                    interview_date=interview_date,
+                    meeting_link=meeting_link
+                )
             if meeting_link:#update if don't have meeting link
                 linked_application.meeting_link = meeting_link
             
