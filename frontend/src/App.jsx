@@ -1,8 +1,6 @@
 import { useState } from "react";
 import {
-  BrowserRouter as Router,
-  Route,
-  Switch,
+  BrowserRouter as Route,
   NavLink,
   BrowserRouter,
   Routes,
@@ -12,7 +10,6 @@ import Profile from "./pages/Profile";
 import Documents from "./pages/Documents";
 import React from "react";
 import "./App.css";
-import DataResponseList from "./components/DataResponse";
 
 const USER_ID = "3fa85f64-5717-4562-b3fc-2c963f66afa6";
 
