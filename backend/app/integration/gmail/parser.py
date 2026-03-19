@@ -1,6 +1,6 @@
 import re
 from typing import Dict, Optional 
-from datetime import datetime
+from datetime import datetime, timezone
 from dateutil import parser as date_parser
 
 STATUS_RULES: Dict[str, list[str]] = {
@@ -57,7 +57,10 @@ def extract_interview_datetime(content: str) -> Optional[datetime]:
         match = re.search(pattern, content, re.IGNORECASE)
         if match:
             try:
-                return date_parser.parse(match.group(1))
+                parsed = date_parser.parse(match.group(1))
+                if parsed.tzinfo is None:
+                    parsed = parsed.replace(tzinfo=timezone.utc)#timezone aware ISO format
+                return parsed
             except Exception:
                 pass
 
