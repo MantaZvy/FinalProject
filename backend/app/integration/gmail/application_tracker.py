@@ -102,15 +102,18 @@ async def sync_gmail_applications(session: AsyncSession, user_id):
                 linked_application.status = status#store status in db
             if interview_date and not linked_application.interview_date:#update if we don't have an interview date
                 linked_application.interview_date = interview_date
-                await asyncio.to_thread(#wrap asynchrynous to env so woulnd't block main thread
-                    create_interview_event,#if there's an interview date, create calendar event
-                    title=f"Interview - {linked_application.job_title} @ {linked_application.company}",
-                    interview_date=interview_date,
-                    meeting_link=meeting_link
-                )
             if meeting_link:#update if don't have meeting link
                 linked_application.meeting_link = meeting_link
-            
+                
+        if interview_date and status == "interview":
+            await asyncio.to_thread(
+                create_interview_event,
+                title=f"Interview - {email['subject']}",
+                interview_date=interview_date,
+                meeting_link=meeting_link
+            )
+            print(f"EMAIL: {email['subject']}")
+            print(f"  status={status} | interview_date={interview_date} | linked_app={linked_application}")
             
     await session.commit()
 
