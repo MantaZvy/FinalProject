@@ -1,10 +1,5 @@
 import { useState } from "react";
-import {
-  BrowserRouter as Route,
-  NavLink,
-  BrowserRouter,
-  Routes,
-} from "react-router-dom";
+import { BrowserRouter, Route, NavLink, Routes } from "react-router-dom";
 import Applications from "./pages/Applications";
 import Profile from "./pages/Profile";
 import Documents from "./pages/Documents";
