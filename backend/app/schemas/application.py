@@ -35,6 +35,8 @@ class ApplicationOut(BaseModel):
     salary_range: Optional[str]
     notes: Optional[str]
     applied_date: Optional[datetime.date]
+    interview_date: Optional[datetime.datetime]
+    meeting_link: Optional[str]
     created_at: Optional[datetime.datetime]
     updated_at: Optional[datetime.datetime]
 

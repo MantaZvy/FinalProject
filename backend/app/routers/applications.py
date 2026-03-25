@@ -15,6 +15,7 @@ async def create_application(
     payload: ApplicationCreate,
     db: AsyncSession = Depends(get_db)
 ):
+    print("PAYLOAD RECEIVED:", payload.model_dump())
     # validate JobSeeker
     user = await db.scalar(
         select(JobSeeker).where(JobSeeker.user_id == payload.user_id)

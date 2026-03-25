@@ -87,11 +87,19 @@ export default function Documents() {
         job_title: "Custom Job",
         company: "Custom",
         status: "applied",
-        applied_date: new Date().toISOString().split("T")[0],
+        applied_date: new Date().toLocaleDateString("en-CA"),
       });
       return appRes.data.application_id;
     } catch (e) {
       console.error("Failed to create temp application:", e.response?.data);
+      const detail = e.response?.data?.detail;
+      if (Array.isArray(detail)) {
+        setError(detail.map((d) => d.msg).join(", "));
+      } else if (typeof detail === "string") {
+        setError(detail);
+      } else {
+        setError("Failed to create application. Check backend is running.");
+      }
       throw e;
     }
   };
@@ -124,10 +132,15 @@ export default function Documents() {
       setPreview({ type, content: res.data.content, appId });
     } catch (e) {
       const detail = e.response?.data?.detail;
-      setError(
-        detail ||
+      if (Array.isArray(detail)) {
+        setError(detail.map((d) => d.msg).join(", "));
+      } else if (typeof detail === "string") {
+        setError(detail);
+      } else {
+        setError(
           "Generation failed. Make sure your profile has skills and a resume uploaded."
-      );
+        );
+      }
     } finally {
       setGenerating(null);
     }
