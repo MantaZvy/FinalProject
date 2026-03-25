@@ -7,10 +7,10 @@ class ApplicationCreate(BaseModel):
     job_id: Optional[uuid.UUID]
     job_title: Optional[str]
     company: Optional[str]
-    platform: Optional[str]
+    platform: Optional[str] = None
     status: Optional[str]
-    salary_range: Optional[str]
-    notes: Optional[str]
+    salary_range: Optional[str] = None
+    notes: Optional[str] = None 
     applied_date: Optional[datetime.date]
 
 
