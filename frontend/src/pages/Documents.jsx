@@ -65,7 +65,12 @@ export default function Documents() {
   };
 
   const resolveApplicationId = async () => {
-    if (selectedAppId) return selectedAppId;
+    if (selectedAppId) {
+      try {
+        await api.post("/match_scores/compute/${selectedAppId}");
+      } catch (e) {}
+      return selectedAppId;
+    }
     if (!jobDescription.trim()) return null;
 
     try {
@@ -88,8 +93,13 @@ export default function Documents() {
         company: "Custom",
         status: "applied",
         applied_date: new Date().toLocaleDateString("en-CA"),
+        platform: null,
+        salary_range: null,
+        notes: null,
       });
-      return appRes.data.application_id;
+      const appId = appRes.data.application_id;
+      await api.post("/match_scores/compute/${appId}"); //compute match score before generation
+      return appId;
     } catch (e) {
       console.error("Failed to create temp application:", e.response?.data);
       const detail = e.response?.data?.detail;
