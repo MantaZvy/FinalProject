@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, Any
 import uuid, datetime
 
 class DocumentCreate(BaseModel):
@@ -17,7 +17,7 @@ class DocumentOut(BaseModel):
     document_id: uuid.UUID
     user_id: uuid.UUID
     doc_type: str
-    content: Optional[str]
+    content: Optional[Any]
     file_path: Optional[str]
     created_at: datetime.datetime
 
