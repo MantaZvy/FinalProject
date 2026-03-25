@@ -64,34 +64,36 @@ export default function Documents() {
     }
   };
 
-  // Ensure we have an application_id to generate against
   const resolveApplicationId = async () => {
-    // Option A: user picked an existing application
     if (selectedAppId) return selectedAppId;
-
-    // Option B: user pasted a JD — create a temp job + application
     if (!jobDescription.trim()) return null;
 
-    // Create a job description entry
-    const jobRes = await api.post("/jobs/", {
-      title: "Custom Job",
-      company: "Custom",
-      description: jobDescription,
-      skills_required: [],
-      keywords: [],
-      source: "manual",
-    });
-    const jobId = jobRes.data.job_id;
+    try {
+      //create job first
+      const jobRes = await api.post("/jobs/", {
+        title: "Custom Job",
+        company: "Custom",
+        description: jobDescription,
+        skills_required: [],
+        keywords: [],
+        source: "manual",
+      });
+      const jobId = jobRes.data.job_id;
 
-    // Create a linked application
-    const appRes = await api.post("/applications/", {
-      user_id: USER_ID,
-      job_id: jobId,
-      job_title: "Custom Job",
-      company: "Custom",
-      status: "applied",
-    });
-    return appRes.data.application_id;
+      //create application linked to that job
+      const appRes = await api.post("/applications/", {
+        user_id: USER_ID,
+        job_id: jobId,
+        job_title: "Custom Job",
+        company: "Custom",
+        status: "applied",
+        applied_date: new Date().toISOString().split("T")[0],
+      });
+      return appRes.data.application_id;
+    } catch (e) {
+      console.error("Failed to create temp application:", e.response?.data);
+      throw e;
+    }
   };
 
   const handleGenerate = async (type) => {

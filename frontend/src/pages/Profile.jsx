@@ -151,8 +151,12 @@ export default function Profile() {
         setSkills(d.skills || []);
         setCertifications(d.certifications || []);
         setKeywords(d.keywords || []);
-        setEducation(d.education?.education || []);
-        setExperience(d.experience?.experience || []);
+        setEducation(
+          Array.isArray(d.education?.education) ? d.education.education : []
+        );
+        setExperience(
+          Array.isArray(d.experience?.experience) ? d.experience.experience : []
+        );
       })
       .catch(() => setError("Could not load profile. Is the backend running?"))
       .finally(() => setLoading(false));
@@ -186,8 +190,16 @@ export default function Profile() {
       setSkills(profile.skills || []);
       setCertifications(profile.certifications || []);
       setKeywords(profile.keywords || []);
-      setEducation(profile.education?.education || []);
-      setExperience(profile.experience?.experience || []);
+      setEducation(
+        Array.isArray(profile.education?.education)
+          ? profile.education.education
+          : []
+      );
+      setExperience(
+        Array.isArray(profile.experience?.experience)
+          ? profile.experience.experience
+          : []
+      );
     }
     setEditing(false);
   };
