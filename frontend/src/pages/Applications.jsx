@@ -40,7 +40,11 @@ export default function Applications() {
   const fetchApps = async () => {
     try {
       const res = await api.get("/applications/");
-      setApps(res.data);
+      setApps(
+        res.data.filter(
+          (a) => !(a.company === "Custom" && a.job_title === "Custom Job")
+        )
+      );
       setError(null);
     } catch (e) {
       setError("Failed to load applications. Is the backend running?");
@@ -53,7 +57,11 @@ export default function Applications() {
     setSyncing(true);
     try {
       const res = await api.get(`/applications/sync-and-list/${USER_ID}`);
-      setApps(res.data);
+      setApps(
+        res.data.filter(
+          (a) => !(a.company === "Custom" && a.job_title === "Custom Job")
+        )
+      );
       setLastSync(new Date().toLocaleTimeString());
       setError(null);
     } catch (e) {

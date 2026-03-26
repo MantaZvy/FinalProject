@@ -67,48 +67,60 @@ export default function Documents() {
   const resolveApplicationId = async () => {
     if (selectedAppId) {
       try {
-        await api.post("/match_scores/compute/${selectedAppId}");
+        await api.post(`/match_scores/compute/${selectedAppId}`);
       } catch (e) {}
       return selectedAppId;
     }
     if (!jobDescription.trim()) return null;
 
     try {
-      //create job first
-      const jobRes = await api.post("/jobs/", {
-        title: "Custom Job",
-        company: "Custom",
-        description: jobDescription,
-        skills_required: [],
-        keywords: [],
-        source: "manual",
-      });
-      const jobId = jobRes.data.job_id;
+      const appsRes = await api.get("/applications/"); //check if a temp application already exists
+      const existing = appsRes.data.find(
+        (a) => a.company === "Custom" && a.job_title === "Custom Job"
+      );
 
-      //create application linked to that job
-      const appRes = await api.post("/applications/", {
-        user_id: USER_ID,
-        job_id: jobId,
-        job_title: "Custom Job",
-        company: "Custom",
-        status: "applied",
-        applied_date: new Date().toLocaleDateString("en-CA"),
-        platform: null,
-        salary_range: null,
-        notes: null,
-      });
-      const appId = appRes.data.application_id;
+      let appId;
+
+      if (existing) {
+        appId = existing.application_id;
+      } else {
+        //create job first(only once)
+        const jobRes = await api.post("/jobs/", {
+          title: "Custom Job",
+          company: "Custom",
+          description: jobDescription,
+          skills_required: [],
+          keywords: [],
+          source: "manual",
+        });
+        const jobId = jobRes.data.job_id;
+
+        //create application linked to that job
+        const appRes = await api.post("/applications/", {
+          user_id: USER_ID,
+          job_id: jobId,
+          job_title: "Custom Job",
+          company: "Custom",
+          status: "applied",
+          applied_date: new Date().toLocaleDateString("en-CA"),
+          platform: null,
+          salary_range: null,
+          notes: null,
+        });
+        appId = appRes.data.application_id;
+      }
+
       await api.post(`/match_scores/compute/${appId}`); //compute match score before generation
       return appId;
     } catch (e) {
-      console.error("Failed to create temp application:", e.response?.data);
+      console.error("Failed to resolve an application:", e.response?.data);
       const detail = e.response?.data?.detail;
       if (Array.isArray(detail)) {
         setError(detail.map((d) => d.msg).join(", "));
       } else if (typeof detail === "string") {
         setError(detail);
       } else {
-        setError("Failed to create application. Check backend is running.");
+        setError("Generation failed. Check backend is running.");
       }
       throw e;
     }
