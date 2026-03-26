@@ -98,7 +98,7 @@ export default function Documents() {
         notes: null,
       });
       const appId = appRes.data.application_id;
-      await api.post("/match_scores/compute/${appId}"); //compute match score before generation
+      await api.post(`/match_scores/compute/${appId}`); //compute match score before generation
       return appId;
     } catch (e) {
       console.error("Failed to create temp application:", e.response?.data);
