@@ -29,6 +29,35 @@ const StatCard = ({ label, value, accent }) => (
   </div>
 );
 
+function AnalyticsModal({ app, onClose }) {//analytics modal for vie application button
+  const [score, setScore] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [computing, setComputing] = useState(false);
+  const [error, setError] = useState(null);
+ 
+  const fetchScore = async () => {
+    setLoading(true);
+    try {
+      const res = await api.get("/match_scores/");
+      const scores = res.data.filter(
+        s => s.application_id === app.application_id
+      );
+      if (scores.length > 0) {
+        // get most recent
+        const latest = scores.sort(
+          (a, b) => new Date(b.created_at) - new Date(a.created_at)
+        )[0];
+        setScore(latest);
+      } else {
+        setScore(null);
+      }
+    } catch (e) {
+      setError("Failed to load analytics.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
 export default function Applications() {
   const [apps, setApps] = useState([]);
   const [loading, setLoading] = useState(true);
