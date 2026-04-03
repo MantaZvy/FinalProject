@@ -29,18 +29,19 @@ const StatCard = ({ label, value, accent }) => (
   </div>
 );
 
-function AnalyticsModal({ app, onClose }) {//analytics modal for vie application button
+//analytics modal
+function AnalyticsModal({ app, onClose }) {
   const [score, setScore] = useState(null);
   const [loading, setLoading] = useState(true);
   const [computing, setComputing] = useState(false);
   const [error, setError] = useState(null);
- 
+
   const fetchScore = async () => {
     setLoading(true);
     try {
       const res = await api.get("/match_scores/");
       const scores = res.data.filter(
-        s => s.application_id === app.application_id
+        (s) => s.application_id === app.application_id
       );
       if (scores.length > 0) {
         // get most recent
@@ -58,12 +59,207 @@ function AnalyticsModal({ app, onClose }) {//analytics modal for vie application
     }
   };
 
+  const handleCompute = async () => {
+    setComputing(true);
+    setError(null);
+    try {
+      const res = await api.post(`/match_scores/compute/${app.application_id}`);
+      setScore(res.data);
+    } catch (e) {
+      const detail = e.response?.data?.detail;
+      setError(
+        typeof detail === "string"
+          ? detail
+          : "Failed to compute. Make sure you have a resume uploaded and the application has a linked job."
+      );
+    } finally {
+      setComputing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchScore();
+  }, []);
+
+  const pct = score ? Math.round((score.similarity_score || 0) * 100) : 0;
+  const barColor = pct >= 60 ? "#22c55e" : pct >= 30 ? "#f59e0b" : "#ef4444";
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div
+        className="modal analytics-modal"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="modal-header">
+          <div>
+            <h2>Predictive Analytics</h2>
+            <p
+              style={{
+                fontSize: "13px",
+                color: "var(--text-muted)",
+                marginTop: "2px",
+              }}
+            >
+              {app.job_title || "Untitled"} @ {app.company || "Unknown"}
+            </p>
+          </div>
+          <button className="modal-close" onClick={onClose}>
+            ✕
+          </button>
+        </div>
+
+        {error && <div className="error-banner">{error}</div>}
+
+        {loading ? (
+          <div className="empty-state" style={{ padding: "2rem" }}>
+            Loading analytics...
+          </div>
+        ) : score ? (
+          <div className="analytics-content">
+            {/*match score bar*/}
+            <div className="analytics-section">
+              <div className="analytics-section-title">Resume Match Score</div>
+              <div className="score-display">
+                <span className="score-number" style={{ color: barColor }}>
+                  {pct}%
+                </span>
+                <span className="score-model">
+                  via {score.model_used || "hybrid_match"}
+                </span>
+              </div>
+              <div className="score-bar-bg">
+                <div
+                  className="score-bar-fill"
+                  style={{ width: `${pct}%`, background: barColor }}
+                />
+              </div>
+              <div className="score-labels">
+                <span>Low match</span>
+                <span>Strong match</span>
+              </div>
+            </div>
+
+            {/*matched skills*/}
+            <div className="analytics-section">
+              <div className="analytics-section-title">
+                Matched Skills
+                <span className="analytics-count matched-count">
+                  {(score.matched_skills || []).length}
+                </span>
+              </div>
+              <div className="tag-list-display">
+                {(score.matched_skills || []).length > 0 ? (
+                  (score.matched_skills || []).map((s, i) => (
+                    <span key={i} className="skill-tag matched">
+                      {s}
+                    </span>
+                  ))
+                ) : (
+                  <span className="profile-empty">
+                    No matched skills found.
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/*missing skills*/}
+            <div className="analytics-section">
+              <div className="analytics-section-title">
+                Missing Skills
+                <span className="analytics-count missing-count">
+                  {(score.missing_skills || []).length}
+                </span>
+              </div>
+              <div className="tag-list-display">
+                {(score.missing_skills || []).length > 0 ? (
+                  (score.missing_skills || []).map((s, i) => (
+                    <span key={i} className="skill-tag missing">
+                      {s}
+                    </span>
+                  ))
+                ) : (
+                  <span className="profile-empty">
+                    No missing skills — great match!
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/*explanations*/}
+            {score.explanation && (
+              <div className="analytics-section">
+                <div className="analytics-section-title">Analysis</div>
+                <p className="analytics-explanation">{score.explanation}</p>
+              </div>
+            )}
+
+            {/*recs*/}
+            {(score.recommendations || []).length > 0 && (
+              <div className="analytics-section">
+                <div className="analytics-section-title">Recommendations</div>
+                <div className="recommendations-list">
+                  {(score.recommendations || []).map((rec, i) => (
+                    <div key={i} className="rec-card">
+                      <div className="rec-header">
+                        <span className="rec-skill">{rec.skill}</span>
+                        <span className="rec-category">{rec.category}</span>
+                      </div>
+                      <p className="rec-text">{rec.recommendation}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <button
+              className="btn btn-ghost"
+              style={{ marginTop: "0.5rem", fontSize: "12px" }}
+              onClick={handleCompute}
+              disabled={computing}
+            >
+              {computing ? (
+                <>
+                  <span className="spinner" /> Recomputing...
+                </>
+              ) : (
+                "↻ Recompute Score"
+              )}
+            </button>
+          </div>
+        ) : (
+          <div className="analytics-empty">
+            <p>No match score computed yet for this application.</p>
+            <p className="profile-hint" style={{ marginTop: "6px" }}>
+              Make sure you have a resume uploaded on the Documents page first.
+            </p>
+            <button
+              className="btn btn-primary"
+              style={{ marginTop: "1rem" }}
+              onClick={handleCompute}
+              disabled={computing}
+            >
+              {computing ? (
+                <>
+                  <span className="spinner" /> Computing...
+                </>
+              ) : (
+                "◎ Compute Match Score"
+              )}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function Applications() {
   const [apps, setApps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [lastSync, setLastSync] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [analyticsApp, setAnalyticsApp] = useState(null);
   const [error, setError] = useState(null);
 
   const fetchApps = async () => {
@@ -179,6 +375,7 @@ export default function Applications() {
                 <th>Interview Date</th>
                 <th>Status</th>
                 <th>Meeting</th>
+                <th>Analytics</th>
               </tr>
             </thead>
             <tbody>
@@ -220,6 +417,14 @@ export default function Applications() {
                       "—"
                     )}
                   </td>
+                  <td>
+                    <button
+                      className="analytics-btn"
+                      onClick={() => setAnalyticsApp(app)}
+                    >
+                      ◎ View
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -242,6 +447,13 @@ export default function Applications() {
       {showAddModal && (
         <AddModal onClose={() => setShowAddModal(false)} onSaved={fetchApps} />
       )}
+
+      {analyticsApp && (
+        <AnalyticsModal
+          app={analyticsApp}
+          onClose={() => setAnalyticsApp(null)}
+        />
+      )}
     </div>
   );
 }
@@ -252,6 +464,9 @@ function AddModal({ onClose, onSaved }) {
     job_title: "",
     status: "applied",
     applied_date: "",
+    platform: "",
+    salary_range: "",
+    notes: "",
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
@@ -267,6 +482,10 @@ function AddModal({ onClose, onSaved }) {
         ...form,
         user_id: USER_ID,
         job_id: null,
+        platform: form.platform || null,
+        salary_range: form.salary_range || null,
+        notes: form.notes || null,
+        applied_date: form.applied_date || null,
       });
       onSaved();
       onClose();
