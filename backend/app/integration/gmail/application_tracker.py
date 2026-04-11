@@ -1,11 +1,12 @@
 from app.integration.gmail.service import fetch_application_emails
 from app.integration.gmail.parser import detect_application_status, extract_interview_datetime, extract_meeting_link
 from app.integration.calendar.service import create_interview_event
-from app.models import Applications, EmailEvents
+from app.models import Applications, EmailEvents, JobDescriptions
+from app.nlp.resume_parser import extract_skills
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from datetime import datetime
-from uuid import uuid4
+from uuid import uuid4, UUID
 import asyncio
 
 STATUS_PRIORITY = {
@@ -62,6 +63,31 @@ async def find_application_by_email(session: AsyncSession, user_id, sender: str,
             return app
     return None
 
+async def ensure_job_exists(session: AsyncSession, company: str, job_title: str, email_content: str=""):#for predicitve analytics, ensures all jobs are logged withing db
+    result = await session.execute(
+        select(JobDescriptions).where(
+            JobDescriptions.company == company,
+            JobDescriptions.title == job_title
+        )
+    )
+    existing_job = result.scalar_one_or_none()
+    if existing_job:
+        return existing_job.job_id
+
+    keywords = extract_skills(email_content) if email_content else [] #extract skills from email content for better predictive analytics
+
+    new_job = JobDescriptions(
+        title=job_title or "Unknown Role",
+        company=company or "Unknown Company",
+        description=f"Auto-created from Gmail detection for {job_title} at {company}",
+        skills_required=[],
+        keywords=keywords,
+        source="gmail_auto",
+    )
+    session.add(new_job)
+    await session.flush()  #flush job_if from db to use in application record
+    return new_job.job_id
+
 async def sync_gmail_applications(session: AsyncSession, user_id):
     emails = fetch_application_emails()
     for email in emails:
@@ -100,20 +126,22 @@ async def sync_gmail_applications(session: AsyncSession, user_id):
         if linked_application:
             if should_update_status(linked_application.status, status):#if new interview date, update status
                 linked_application.status = status#store status in db
+            if linked_application.job_id is None:
+                job_id = await ensure_job_exists(session=session, company=linked_application.company or "Unknown", job_title=linked_application.job_title or email["subject"], email_content=content)
+                linked_application.job_id = job_id
             if interview_date and not linked_application.interview_date:#update if we don't have an interview date
+                linked_application.interview_date = interview_date
+                await asyncio.to_thread(
+                    create_interview_event,
+                    title=f"Interview for {linked_application.job_title} at {linked_application.company}",
+                    interview_datetime=interview_date,
+                    meeting_link=meeting_link
+                )
                 linked_application.interview_date = interview_date
             if meeting_link:#update if don't have meeting link
                 linked_application.meeting_link = meeting_link
                 
-        if interview_date and status == "interview":
-            await asyncio.to_thread(
-                create_interview_event,
-                title=f"Interview - {email['subject']}",
-                interview_date=interview_date,
-                meeting_link=meeting_link
-            )
-            print(f"EMAIL: {email['subject']}")
-            print(f"  status={status} | interview_date={interview_date} | linked_app={linked_application}")
+            
             
     await session.commit()
 
