@@ -39,6 +39,15 @@ def extract_domain(sender: str | None) -> str | None:
     if not sender or "@" not in sender:
         return None
     return sender.split("@")[-1].lower()
+def extract_company(sender: str) -> str:#to make sure company name is extracted correctly/accurately
+    if "<" in sender:
+        display_name = sender.split("<")[0].strip().strip('"')
+        if display_name and display_name.lower() not in ["","unknown","no-reply"]:
+            return display_name
+        domain = extract_domain(sender)
+        if domain:
+            return domain.split(".")[0].title()
+        return "Unknown"
 
 async def find_application_by_email(session: AsyncSession, user_id, sender: str, subject:str):
     domain = extract_domain(sender)
@@ -110,6 +119,39 @@ async def sync_gmail_applications(session: AsyncSession, user_id):
             sender=email["from"],
             subject=email["subject"]
         )
+        if not linked_application and status != "unknown":#auto create application if job not detected but have a clear status
+            domain = extract_company(email["from"])
+        
+            raw_title = email["subject"]
+            for prefix in ["interview invitation", "interview invitation -", "thank you for applying to",
+                           "your application to", "application received", "re:"]:
+                if raw_title.lower().startswith(prefix):
+                    raw_title = raw_title[len(prefix):].strip()
+            raw_title = raw_title.lower().replace(prefix, "").strip()#clean from dashes and spaces(prefixes)
+            job_title = raw_title.title() or "Unknown Role"
+
+            job_id = await ensure_job_exists(
+                session=session,
+                company=domain,
+                job_title=job_title,
+                email_content=content
+            )
+
+            linked_application = Applications(
+                application_id=uuid4(),
+                user_id=user_id,
+                job_title=job_title,
+                company=domain,
+                job_id=job_id,
+                status=status,
+                platform="gmail_auto",
+                applied_date=None,
+                interview_date=interview_date,
+                meeting_link=meeting_link,
+            )
+            session.add(linked_application)
+            await session.flush()
+            
         email_event = EmailEvents(
             id=uuid4(),
             gmail_message_id=email["id"],
@@ -134,7 +176,7 @@ async def sync_gmail_applications(session: AsyncSession, user_id):
                 await asyncio.to_thread(
                     create_interview_event,
                     title=f"Interview for {linked_application.job_title} at {linked_application.company}",
-                    interview_datetime=interview_date,
+                    interview_date=interview_date,
                     meeting_link=meeting_link
                 )
                 linked_application.interview_date = interview_date
