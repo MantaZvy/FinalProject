@@ -6,9 +6,19 @@ from io import BytesIO
 
 
 COMMON_SKILLS = [
-    "python", "sql", "fastapi", "postgresql",
-    "nlp", "machine learning", "docker",
-    "aws", "react", "javascript"
+    #programming languages
+    "python", "javascript", "typescript", "java", "c++", "c#", "ruby", "go", "rust", "swift",
+    #web frameworks
+    "react", "vue", "angular", "fastapi", "django", "flask", "express", "nodejs", "node",
+    #db
+    "sql", "postgresql", "mysql", "mongodb", "redis", "sqlite", "elasticsearch",
+    #cloud and devops
+    "aws", "azure", "gcp", "docker", "kubernetes", "terraform", "jenkins", "git", "github",
+    #data/ml
+    "machine learning", "nlp", "tensorflow", "pytorch", "pandas", "numpy", "scikit-learn",
+    #other
+    "rest", "api", "graphql", "microservices", "agile", "scrum", "linux", "bash",
+    "sqlalchemy", "celery", "kafka", "rabbitmq", "nginx",
 ]
 #text extraction from format logic (ONLY TEXT AND PDF SUPPORTED)
 def extract_resume_text(file_bytes: bytes, content_type: str) -> str:
