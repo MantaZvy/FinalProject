@@ -6,8 +6,8 @@ from app.nlp.match_scorer import final_match
 from app.models import MatchScores, Applications, JobDescriptions, JobSeeker, Documents
 from app.nlp.recommendations import generate_recommendations
 from app.db import get_db
-import uuid
-import re
+import uuid, math, re
+
 
 router = APIRouter(prefix="/match_scores", tags=["Match Scores"])
 
@@ -96,6 +96,15 @@ def normalize_resume(content):
 
     return {"skills": [], "keywords": []}
 
+def predict_response_probability(similarity_score: float) -> float:
+    """
+    Logistic-style prediction of recruiter response porbability based on similarity treshold:
+    -Score>0.6=high probability (>70%)
+    -Score~0.4=moderate probability (~50%)
+    -Score<0.2=low probability (<30%)
+    """
+    return round(1 / (1 + math.exp(-10 * (similarity_score - 0.4))), 3)  #Sigmoid(centered ~0.4)
+
 #Computed Match Score NLP/ML Endpoint and return MatchScoreOut, create POST
 @router.post(
     "/compute/{application_id}",
@@ -155,6 +164,7 @@ async def compute_match_score_for_application(
     application_id=application.application_id,
     job_id=job.job_id,
     similarity_score=best["similarity_score"],
+    regression_prediction=predict_response_probability(best["similarity_score"]),
     model_used=f'{best["model_name"]}:{best["model_version"]}',
     matched_skills=best.get("matched_skills", []),
     missing_skills=best.get("missing_skills", []),

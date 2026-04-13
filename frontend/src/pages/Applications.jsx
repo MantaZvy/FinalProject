@@ -170,6 +170,29 @@ function AnalyticsModal({ app, onClose }) {
               </div>
             </div>
 
+            {/*regression predicition*/}
+            {score.regression_prediction !== null &&
+              score.regression_prediction !== undefined && (
+                <div className="prediction-row">
+                  <span className="prediction-label">
+                    Recruiter response probability
+                  </span>
+                  <span
+                    className="prediction-value"
+                    style={{
+                      color:
+                        score.regression_prediction >= 0.6
+                          ? "#22c55e"
+                          : score.regression_prediction >= 0.3
+                            ? "#f59e0b"
+                            : "#ef4444",
+                    }}
+                  >
+                    {Math.round(score.regression_prediction * 100)}%
+                  </span>
+                </div>
+              )}
+
             {/*matched skills*/}
             <div className="analytics-section">
               <div className="analytics-section-title">
@@ -323,7 +346,7 @@ function AnalyticsModal({ app, onClose }) {
                   <span className="spinner" /> Computing...
                 </>
               ) : (
-                "◎ Compute Match Score"
+                "Compute Match Score"
               )}
             </button>
           </div>

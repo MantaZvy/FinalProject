@@ -1122,7 +1122,7 @@ body {
   line-height: 1.5;
 }
 
-/* Analytics empty state */
+/*analytics empty state */
 .analytics-empty {
   padding: 1.5rem 0;
   text-align: center;
@@ -1130,7 +1130,7 @@ body {
   font-size: 14px;
 }
 
-/* Analytics button in table */
+/*analytics button in table */
 .analytics-btn {
   background: var(--accent-dim);
   border: 1px solid rgba(167, 139, 250, 0.2);
@@ -1147,4 +1147,26 @@ body {
 
 .analytics-btn:hover {
   background: rgba(167, 139, 250, 0.2);
+}
+/*regression prediction*/
+.prediction-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 1rem;
+  margin-top: 0.5rem;
+}
+
+.prediction-label {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.prediction-value {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
 }
