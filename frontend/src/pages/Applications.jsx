@@ -35,6 +35,9 @@ function AnalyticsModal({ app, onClose }) {
   const [loading, setLoading] = useState(true);
   const [computing, setComputing] = useState(false);
   const [error, setError] = useState(null);
+  const [showJdInput, setShowJdInput] = useState(false);
+  const [jdText, setJdText] = useState("");
+  const [updatingJd, setUpdatingJd] = useState(false);
 
   const fetchScore = async () => {
     setLoading(true);
@@ -74,6 +77,34 @@ function AnalyticsModal({ app, onClose }) {
       );
     } finally {
       setComputing(false);
+    }
+  };
+  const handleUpdateJd = async () => {
+    if (!jdText.trim()) return;
+    setUpdatingJd(true);
+    try {
+      // fetch the application to get job_id
+      const appRes = await api.get(`/applications/${app.application_id}`);
+      const jobId = appRes.data.job_id;
+      if (!jobId) {
+        setError("No linked job found for this application.");
+        return;
+      }
+      // update the job description
+      await api.put(`/jobs/${jobId}`, {
+        description: jdText,
+        skills_required: [],
+        keywords: [],
+      });
+      // recompute match score
+      const res = await api.post(`/match_scores/compute/${app.application_id}`);
+      setScore(res.data);
+      setShowJdInput(false);
+      setJdText("");
+    } catch (e) {
+      setError("Failed to update job description.");
+    } finally {
+      setUpdatingJd(false);
     }
   };
 
@@ -211,6 +242,55 @@ function AnalyticsModal({ app, onClose }) {
               </div>
             )}
 
+            <div className="analytics-section">
+              <div className="analytics-section-title">Job Description</div>
+              {!showJdInput ? (
+                <button
+                  className="btn btn-ghost"
+                  style={{ fontSize: "12px" }}
+                  onClick={() => setShowJdInput(true)}
+                >
+                  + Paste job description to improve score
+                </button>
+              ) : (
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "8px",
+                  }}
+                >
+                  <textarea
+                    className="jd-textarea"
+                    rows={5}
+                    value={jdText}
+                    onChange={(e) => setJdText(e.target.value)}
+                    placeholder="Paste the full job description here..."
+                  />
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    <button
+                      className="btn btn-ghost"
+                      onClick={() => setShowJdInput(false)}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      className="btn btn-primary"
+                      onClick={handleUpdateJd}
+                      disabled={updatingJd}
+                    >
+                      {updatingJd ? (
+                        <>
+                          <span className="spinner" /> Updating...
+                        </>
+                      ) : (
+                        "Update & Recompute"
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
             <button
               className="btn btn-ghost"
               style={{ marginTop: "0.5rem", fontSize: "12px" }}
