@@ -8,55 +8,53 @@ import "./App.css";
 
 const USER_ID = "3fa85f64-5717-4562-b3fc-2c963f66afa6";
 
-const Sidebar = () => (
-  <aside className="sidebar">
-    <div className="sidebar-brand">
-      <span className="brand-icon">◈</span>
-      <span className="brand-name">ApplyAI</span>
-    </div>
-    <nav className="sidebar-nav">
-      <NavLink
-        to="/"
-        end
-        className={({ isActive }) =>
-          isActive ? "nav-item active" : "nav-item"
-        }
-      >
-        <span className="nav-icon">⊞</span> Applications
-      </NavLink>
-      <NavLink
-        to="/profile"
-        end
-        className={({ isActive }) =>
-          isActive ? "nav-item active" : "nav-item"
-        }
-      >
-        <span className="nav-icon">◎</span> Profile
-      </NavLink>
-      <NavLink
-        to="/documents"
-        end
-        className={({ isActive }) =>
-          isActive ? "nav-item active" : "nav-item"
-        }
-      >
-        <span className="nav-icon">▣</span> Documents
-      </NavLink>
-    </nav>
-    <div className="sidebar-footer">
-      <div className="user-pill">
+const Navbar = () => (
+  <nav className="navbar">
+    <div className="navbar-inner">
+      <div className="navbar-brand">
+        <span className="brand-icon">◈</span>
+        <span className="brand-name">ApplyAI</span>
+      </div>
+      <div className="navbar-links">
+        <NavLink
+          to="/"
+          end
+          className={({ isActive }) =>
+            isActive ? "nav-item active" : "nav-item"
+          }
+        >
+          <span className="nav-icon">⊞</span> Applications
+        </NavLink>
+        <NavLink
+          to="/profile"
+          className={({ isActive }) =>
+            isActive ? "nav-item active" : "nav-item"
+          }
+        >
+          <span className="nav-icon">◎</span> Profile
+        </NavLink>
+        <NavLink
+          to="/documents"
+          className={({ isActive }) =>
+            isActive ? "nav-item active" : "nav-item"
+          }
+        >
+          <span className="nav-icon">◫</span> Documents
+        </NavLink>
+      </div>
+      <div className="navbar-user">
         <div className="user-avatar">S</div>
-        <span className="user-label">Manta Z.</span>
+        <span className="user-label">Sofia Z.</span>
       </div>
     </div>
-  </aside>
+  </nav>
 );
 
 export default function App() {
   return (
     <BrowserRouter>
       <div className="app-shell">
-        <Sidebar />
+        <Navbar />
         <main className="main-content">
           <Routes>
             <Route path="/" element={<Applications userId={USER_ID} />} />

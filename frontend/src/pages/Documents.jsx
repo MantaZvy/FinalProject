@@ -207,6 +207,17 @@ export default function Documents() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const handleDelete = async (documentId) => {
+    if (!window.confirm("Are you sure you want to delete this document?"))
+      return;
+    try {
+      await api.delete(`/documents/${documentId}`);
+      fetchDocs();
+    } catch (e) {
+      setError("Failed to delete document.");
+    }
+  };
+
   return (
     <div className="page">
       <div className="page-header">
@@ -233,7 +244,7 @@ export default function Documents() {
 
       {uploadSuccess && <div className="success-banner">{uploadSuccess}</div>}
 
-      {/* Upload section */}
+      {/*upload section*/}
       <section className="profile-section">
         <SectionHeader title="Upload Resume" />
         <p className="profile-hint" style={{ marginBottom: "1rem" }}>
@@ -263,7 +274,7 @@ export default function Documents() {
         </span>
       </section>
 
-      {/* Generate section */}
+      {/*generate section*/}
       <section className="profile-section">
         <SectionHeader title="Generate New Document" />
 
@@ -298,7 +309,7 @@ export default function Documents() {
             <div className="divider-line" />
           </div>
 
-          {/* Option B: paste JD */}
+          {/*option B: paste JD*/}
           <div className="generate-option">
             <div className="option-label">
               <span className="option-badge">Option B</span>
@@ -446,6 +457,18 @@ export default function Documents() {
                         }}
                       >
                         ↓ Download
+                      </button>
+                      <button
+                        className="btn btn-ghost"
+                        style={{
+                          padding: "4px 12px",
+                          fontSize: "12px",
+                          color: "#ef4444",
+                          borderColor: "rgba(239,68,68,0.25)",
+                        }}
+                        onClick={() => handleDelete(doc.document_id)}
+                      >
+                        Delete
                       </button>
                     </div>
                   </td>
