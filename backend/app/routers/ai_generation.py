@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.db import get_db
-from app.models import Applications, JobDescriptions, Documents, MatchScores
+from app.models import Applications, JobDescriptions, Documents, MatchScores, JobSeeker
 from app.nlp.generation.input_builder import build_generation_input
 from app.llm.document_generation import generate_resume, generate_cover_letter
 import uuid
@@ -38,7 +38,25 @@ async def generate_resume_for_application(
         .order_by(Documents.created_at.desc())
     )
     if not resume:
-        raise HTTPException(status_code=404, detail="Resume not found")
+        user = await db.scalar(
+        select(JobSeeker).where(JobSeeker.user_id == application.user_id)
+        )
+        if not user:
+            raise HTTPException(status_code=404, detail="No resume or profile found. Please upload a resume or fill in your profile.")
+        resume = Documents(
+        user_id=application.user_id,
+        doc_type="resume",
+        content={
+            "skills": user.skills or [],
+            "keywords": user.keywords or [],
+            "raw_text": user.profile_summary or "",
+            "experience": user.experience.get("experience", []) if isinstance(user.experience, dict) else [],
+            "education": user.education.get("education", []) if isinstance(user.education, dict) else [],
+            "candidate_name": "Candidate",
+            "resume_summary": user.profile_summary or "",
+        },
+        file_path="profile_data"
+        )
 
     match_score = await db.scalar(
         select(MatchScores)
@@ -93,7 +111,25 @@ async def generate_cover_letter_for_application(
         .order_by(Documents.created_at.desc())
     )
     if not resume:
-        raise HTTPException(status_code=404, detail="Resume not found")
+        user = await db.scalar(
+        select(JobSeeker).where(JobSeeker.user_id == application.user_id)
+        )
+        if not user:
+            raise HTTPException(status_code=404, detail="No resume or profile found. Please upload a resume or fill in your profile.")
+        resume = Documents(
+        user_id=application.user_id,
+        doc_type="resume",
+        content={
+            "skills": user.skills or [],
+            "keywords": user.keywords or [],
+            "raw_text": user.profile_summary or "",
+            "experience": user.experience.get("experience", []) if isinstance(user.experience, dict) else [],
+            "education": user.education.get("education", []) if isinstance(user.education, dict) else [],
+            "candidate_name": "Candidate",
+            "resume_summary": user.profile_summary or "",
+        },
+        file_path="profile_data"
+        )
 
     match_score = await db.scalar(
         select(MatchScores)

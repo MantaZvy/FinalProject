@@ -6,7 +6,7 @@ from app.llm.prompts.cover_letter import build_cover_letter_prompt
 from app.schemas.experience import ExperienceRoleDict 
 
 
-def normalize_experience(raw_experience: List[str]) -> List[ExperienceRoleDict]:
+def normalise_experience(raw_experience: List[str]) -> List[ExperienceRoleDict]:
     roles: List[ExperienceRoleDict] = []
     current: Optional[ExperienceRoleDict] = None
 
@@ -93,9 +93,11 @@ async def generate_resume(input_data: dict) -> dict:
     candidate = input_data["candidate"]
     job = input_data["job"]
 
-    raw_experience = candidate.get("experience", [])
-    structured_experience = normalize_experience(raw_experience)
-
+    structured_experience = candidate.get("structured_experience") or \
+        normalise_experience(candidate.get("experience", []) 
+                           if isinstance(candidate.get("experience"), list) 
+                           else [])
+    print("STRUCTURED EXPERIENCE:", structured_experience)
     content = await _generator.generate_resume(
         candidate_name=candidate.get("name", "Unknown Candidate"),
         structured_experience=structured_experience,
@@ -115,22 +117,21 @@ async def generate_cover_letter(input_data: dict) -> dict:
     job = input_data["job"]
     match = input_data["match"]
 
-    raw_experience = candidate.get("experience", [])
-    structured_experience = normalize_experience(raw_experience)
-
+    structured_experience = candidate.get("structured_experience") or \
+        normalise_experience(candidate.get("experience", [])
+                           if isinstance(candidate.get("experience"), list)
+                           else [])
+    print("STRUCTURED EXPERIENCE:", structured_experience)
     content = await _generator.generate_cover_letter(
-    candidate_name=candidate.get("name", "Unknown Candidate"),
-    structured_experience=structured_experience,
-    skills=candidate.get("skills", []),
-    target_company=job.get("company_name") or job.get("company") or "Unknown Company",
-    target_role=job.get("job_title") or job.get("title") or "Unknown Role",
-    matched_skills=match.get("matched_skills", []),
-    job_description=job.get("description", ""),
-    job_required_skills=job.get("skills_required", []),
-
-)
-    print("COMPANY BEING SENT:", job.get("company_name"), job.get("company"))
-
+        candidate_name=candidate.get("name", "Unknown Candidate"),
+        structured_experience=structured_experience,
+        skills=candidate.get("skills", []),
+        target_company=job.get("company_name") or job.get("company") or "Unknown Company",
+        target_role=job.get("job_title") or job.get("title") or "Unknown Role",
+        matched_skills=match.get("matched_skills", []),
+        job_description=job.get("description", ""),
+        job_required_skills=job.get("skills_required", []),
+    )
 
     return {
         "content": content,
