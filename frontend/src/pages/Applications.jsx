@@ -401,6 +401,11 @@ export default function Applications() {
 
   useEffect(() => {
     fetchApps();
+    const interval = setInterval(() => {
+      //auto-refresh every 20 seconds
+      fetchApps();
+    }, 20000);
+    return () => clearInterval(interval); //cleanup on umnount
   }, []);
 
   const counts = {
@@ -420,6 +425,10 @@ export default function Applications() {
           </p>
         </div>
         <div className="header-actions">
+          <span className="live-indicator">
+            <span className="live-dot" />
+            Live
+          </span>
           {lastSync && (
             <span className="sync-time">Last synced {lastSync}</span>
           )}
@@ -525,7 +534,7 @@ export default function Applications() {
                       className="analytics-btn"
                       onClick={() => setAnalyticsApp(app)}
                     >
-                      ◎ View
+                      View
                     </button>
                   </td>
                 </tr>
