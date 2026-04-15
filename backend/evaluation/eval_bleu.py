@@ -1,12 +1,10 @@
 #Evaluation 2: BLEU Score for Document Generation. Tests generated resume against synthetic professional references.
-
 import re, os
 import nltk
 from nltk.translate.bleu_score import sentence_bleu, SmoothingFunction
 
 #tokenizer
 nltk.download('punkt', quiet=True)
-
 
 #2 synthetic reference resumes
 REFERENCE_1 = """
