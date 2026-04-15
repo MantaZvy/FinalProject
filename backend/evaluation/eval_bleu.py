@@ -1,17 +1,14 @@
-"""
-Evaluation 2: BLEU Score for Document Generation
-Tests generated resume against synthetic professional references.
-"""
+#Evaluation 2: BLEU Score for Document Generation. Tests generated resume against synthetic professional references.
 
-import re
+import re, os
 import nltk
 from nltk.translate.bleu_score import sentence_bleu, SmoothingFunction
 
+#tokenizer
 nltk.download('punkt', quiet=True)
-nltk.download('punkt_tab', quiet=True)
 
 
-#Synthetic reference resumes 2
+#2 synthetic reference resumes
 REFERENCE_1 = """
 Alex Carter Computer Science Student Backend Developer
 Final year Computer Science student at a UK university
@@ -47,7 +44,6 @@ Technical Skills Python JavaScript React SQL FastAPI Git
 Education BSc Computer Science 2026
 """
 
-
 YOUR_GENERATED_RESUME = """
 Candidate Name: Alex Carter
 
@@ -82,6 +78,7 @@ def tokenize(text):
     return text.split()
 
 
+#BLEU Evaluation
 def run():
     smoothing = SmoothingFunction().method1
 
@@ -109,4 +106,59 @@ def run():
     print("machine translation tasks due to multiple valid phrasings.")
     print("=" * 65)
 
+    return b1, b2, b4
 
+
+def plot_results(b1, b2, b4):
+    try:
+        import matplotlib.pyplot as plt
+
+        fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+        fig.suptitle('BLEU Score Evaluation — Document Generation')
+
+        #chart 1 — BLEU scores
+        metrics = ['BLEU-1', 'BLEU-2', 'BLEU-4']
+        scores = [b1, b2, b4]
+
+        axes[0].bar(metrics, scores)
+        axes[0].set_ylim(0, 0.8)
+        axes[0].set_ylabel('Score')
+        axes[0].set_title('BLEU Scores')
+
+        for i, score in enumerate(scores):
+            axes[0].text(i, score + 0.02, f'{score:.3f}', ha='center')
+
+        #chart 2 — accuracy-style comparison
+        thresholds = [0.40, 0.20, 0.10]
+        achieved = [b1 * 100, b2 * 100, b4 * 100]
+        threshold_pct = [t * 100 for t in thresholds]
+
+        x = range(len(metrics))
+        width = 0.35
+
+        axes[1].bar([i - width/2 for i in x], achieved, width, label='Achieved')
+        axes[1].bar([i + width/2 for i in x], threshold_pct, width, label='Threshold')
+
+        axes[1].set_xticks(list(x))
+        axes[1].set_xticklabels(metrics)
+        axes[1].set_ylabel('Score (%)')
+        axes[1].set_title('Achieved vs Threshold')
+        axes[1].legend()
+
+        plt.tight_layout()
+
+        # Ensure directory exists
+        os.makedirs("evaluation", exist_ok=True)
+        output_path = "evaluation/bleu_evaluation.png"
+
+        plt.savefig(output_path)
+        print(f"\nGraph saved to: {output_path}")
+
+        plt.show()
+
+    except ImportError:
+        print("\nInstall matplotlib: pip install matplotlib")
+
+if __name__ == "__main__":
+    b1, b2, b4 = run()
+    plot_results(b1, b2, b4)
