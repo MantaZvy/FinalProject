@@ -1,7 +1,4 @@
-"""
-Evaluation 1: Email Classification Accuracy, tests detect_application_status() function against a synthetic labelled dataset of 30 emails.
-"""
-
+#Evaluation 1: Email Classification Accuracy, tests detect_application_status() function against a synthetic labelled dataset of 30 emails.
 import sys
 import os
 
