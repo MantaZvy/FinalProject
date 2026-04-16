@@ -43,8 +43,8 @@ const Navbar = () => (
         </NavLink>
       </div>
       <div className="navbar-user">
-        <div className="user-avatar">S</div>
-        <span className="user-label">Sofia Z.</span>
+        <div className="user-avatar">U</div>
+        <span className="user-label">User</span>
       </div>
     </div>
   </nav>

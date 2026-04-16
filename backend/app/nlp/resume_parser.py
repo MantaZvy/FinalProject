@@ -7,18 +7,24 @@ from io import BytesIO
 
 COMMON_SKILLS = [
     #programming languages
-    "python", "javascript", "typescript", "java", "c++", "c#", "ruby", "go", "rust", "swift",
+   "python", "javascript", "typescript", "java", "c++", "c#", "ruby", "go",
+    "rust", "swift", "kotlin", "php", "scala", "r",
     #web frameworks
-    "react", "vue", "angular", "fastapi", "django", "flask", "express", "nodejs", "node",
+    "react", "vue", "angular", "fastapi", "django", "flask", "express",
+    "nodejs", "node", "spring", "laravel", "rails",
     #db
-    "sql", "postgresql", "mysql", "mongodb", "redis", "sqlite", "elasticsearch",
+    "sql", "postgresql", "mysql", "mongodb", "redis", "sqlite",
+    "elasticsearch", "cassandra", "dynamodb",
     #cloud and devops
-    "aws", "azure", "gcp", "docker", "kubernetes", "terraform", "jenkins", "git", "github",
+    "aws", "azure", "gcp", "docker", "kubernetes", "terraform",
+    "jenkins", "git", "github", "gitlab", "ci/cd", "linux", "bash",
     #data/ml
-    "machine learning", "nlp", "tensorflow", "pytorch", "pandas", "numpy", "scikit-learn",
+    "machine learning", "nlp", "tensorflow", "pytorch", "pandas",
+    "numpy", "scikit-learn", "keras", "spark", "hadoop",
     #other
-    "rest", "api", "graphql", "microservices", "agile", "scrum", "linux", "bash",
+    "rest", "api", "graphql", "microservices", "agile", "scrum",
     "sqlalchemy", "celery", "kafka", "rabbitmq", "nginx",
+    "fastapi", "pydantic", "oauth", "jwt",
 ]
 #text extraction from format logic (ONLY TEXT AND PDF SUPPORTED)
 def extract_resume_text(file_bytes: bytes, content_type: str) -> str:

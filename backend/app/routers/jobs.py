@@ -4,6 +4,7 @@ from sqlalchemy.future import select
 from app.schemas.job_descriptions import JobDescriptionsCreate, JobDescriptionsUpdate, JobDescriptionsOut
 from app.models import JobDescriptions
 from app.db import get_db
+from app.nlp.resume_parser import extract_skills
 
 router = APIRouter(prefix="/jobs",
     tags=["Job Descriptions"])
@@ -53,6 +54,12 @@ async def update_job(
 
     for field, value in payload.model_dump(exclude_unset=True).items():
         setattr(job, field, value)
+        
+    if payload.description:#Auto job skill extraction from description submitted via predicitve analytics field
+        extracted = extract_skills(payload.description)
+        if extracted:
+            job.skills_required = extracted
+            job.keywords = extracted
 
     await db.commit()
     await db.refresh(job)

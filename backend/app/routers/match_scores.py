@@ -134,15 +134,36 @@ async def compute_match_score_for_application(
         raise HTTPException(status_code=404, detail="Job not found")
 
     resume = await db.scalar(
-        select(Documents)
-        .where(
-            Documents.user_id == application.user_id,
-            Documents.doc_type == "resume",
-        )
-        .order_by(Documents.created_at.desc())
+    select(Documents)
+    .where(
+        Documents.user_id == application.user_id,
+        Documents.doc_type == "resume",
     )
-    if not resume:
-        raise HTTPException(status_code=404, detail="Resume not found")
+    .order_by(Documents.created_at.desc())
+)
+    if not resume:#Fallback to profile data if no resume found (404)
+        user = await db.scalar(
+            select(JobSeeker).where(JobSeeker.user_id == application.user_id)
+        )
+        if not user or not user.skills:
+            raise HTTPException(
+                status_code=404,
+                detail="Resume not found. Please upload a resume or add skills to your profile."
+            )
+        resume = Documents(
+            user_id=application.user_id,
+            doc_type="resume",
+            content={
+                "skills": user.skills or [],
+                "keywords": user.keywords or [],
+                "raw_text": user.profile_summary or "",
+                "experience": user.experience.get("experience", []) if isinstance(user.experience, dict) else [],
+                "education": user.education.get("education", []) if isinstance(user.education, dict) else [],
+                "candidate_name": "Candidate",
+                "resume_summary": user.profile_summary or "",
+            },
+            file_path="profile_data"
+        )
 
     
     job_data = {

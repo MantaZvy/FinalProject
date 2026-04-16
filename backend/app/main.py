@@ -36,19 +36,13 @@ app.include_router(ai_generation.router)
 @app.on_event("startup")
 async def startup_event():
     start_scheduler()
+    print("Gmail sync scheduler started — polling every 5 minutes") 
 
 # Root endpoints
 @app.get("/")
 def read_root():
     return {"message": "Backend is running!"}
 
-@app.get("/test-db")
-async def test_db_connection(db: AsyncSession = Depends(get_db)):
-    try:
-        result = await db.execute(text("SELECT 1"))
-        value = result.scalar()
-        return {"status": "connected", "result": value}
-    except Exception as e:
-        return {"status": "error", "detail": str(e)}
+
 
 

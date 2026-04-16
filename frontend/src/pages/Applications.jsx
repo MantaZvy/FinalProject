@@ -381,6 +381,17 @@ export default function Applications() {
     }
   };
 
+  const handleDeleteApp = async (applicationId) => {
+    if (!window.confirm("Are you sure you want to remove this application?"))
+      return;
+    try {
+      await api.delete(`/applications/${applicationId}`);
+      fetchApps();
+    } catch (e) {
+      setError("Failed to delete application.");
+    }
+  };
+
   const handleGmailSync = async () => {
     setSyncing(true);
     try {
@@ -530,12 +541,31 @@ export default function Applications() {
                     )}
                   </td>
                   <td>
-                    <button
-                      className="analytics-btn"
-                      onClick={() => setAnalyticsApp(app)}
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "6px",
+                        alignItems: "center",
+                      }}
                     >
-                      View
-                    </button>
+                      <button
+                        className="analytics-btn"
+                        onClick={() => setAnalyticsApp(app)}
+                      >
+                        View
+                      </button>
+                      <button
+                        className="analytics-btn"
+                        style={{
+                          color: "#ef4444",
+                          borderColor: "rgba(239,68,68,0.2)",
+                          background: "rgba(239,68,68,0.08)",
+                        }}
+                        onClick={() => handleDeleteApp(app.application_id)}
+                      >
+                        ✕
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
