@@ -9,7 +9,7 @@ from app.integration.gmail.parser import detect_application_status
 
 #30 labelled test emails
 TEST_EMAILS = [
-    # INTERVIEW (10)
+    #INTERVIEW 10
     {"subject": "Interview Invitation – Backend Engineer",
      "body": "We would like to invite you to interview for the Backend Engineer position.", "label": "interview"},
     {"subject": "Next Steps – Software Developer Role",
@@ -31,7 +31,7 @@ TEST_EMAILS = [
     {"subject": "Interview Request – React Developer",
      "body": "We would like to discuss your application further. Are you available for a call?", "label": "interview"},
 
-    # REJECTED (8)
+    #REJECTED 8
     {"subject": "Your Application – Software Engineer",
      "body": "Unfortunately, we will not be moving forward with your application at this time.", "label": "rejected"},
     {"subject": "Application Decision",
@@ -49,7 +49,7 @@ TEST_EMAILS = [
     {"subject": "Thank you for your interest",
      "body": "We are not moving forward with your application at this time.", "label": "rejected"},
 
-    # APPLIED (7)
+    #APPLIED 7
     {"subject": "Application Received – Software Engineer",
      "body": "Thank you for applying to the Software Engineer position. We will review your application.", "label": "applied"},
     {"subject": "Thank you for applying to DEVLIFE",
@@ -65,7 +65,7 @@ TEST_EMAILS = [
     {"subject": "Application Acknowledgement",
      "body": "Thank you for applying. Your application has been received and is under review.", "label": "applied"},
 
-    # OFFER (5)
+    #OFFER 5
     {"subject": "Job Offer – Backend Engineer",
      "body": "We are pleased to offer you the position of Backend Engineer at our company.", "label": "offer"},
     {"subject": "Congratulations! Employment Offer",

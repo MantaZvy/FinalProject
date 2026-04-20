@@ -44,7 +44,8 @@ function AnalyticsModal({ app, onClose }) {
     try {
       const res = await api.get("/match_scores/");
       const scores = res.data.filter(
-        (s) => s.application_id === app.application_id
+        (s) =>
+          s.application_id === app.application_id && s.application_id !== null
       );
       if (scores.length > 0) {
         // get most recent
