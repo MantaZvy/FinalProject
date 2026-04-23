@@ -16,19 +16,20 @@ async def create_application(
     db: AsyncSession = Depends(get_db)
 ):
     print("PAYLOAD RECEIVED:", payload.model_dump())
-    # validate JobSeeker
+    #validate JobSeeker
     user = await db.scalar(
         select(JobSeeker).where(JobSeeker.user_id == payload.user_id)
     )
     if not user:
         raise HTTPException(status_code=400, detail="Invalid user_id")
 
-    # validate JobDescription
-    job = await db.scalar(
-        select(JobDescriptions).where(JobDescriptions.job_id == payload.job_id)
-    )
-    if not job:
-        raise HTTPException(status_code=400, detail="Invalid job_id")
+    #validate JobDescription only if job_id provided
+    if payload.job_id is not None:
+        job = await db.scalar(
+            select(JobDescriptions).where(JobDescriptions.job_id == payload.job_id)
+        )
+        if not job:
+            raise HTTPException(status_code=400, detail="Invalid job_id")
 
     application = Applications(**payload.model_dump())
     db.add(application)
